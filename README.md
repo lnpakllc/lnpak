@@ -118,8 +118,9 @@ cookies work without any cross-domain setup. LN PAK is a business website, so us
 **Step 3 — Website project (`lnpak-web`)**
 1. Add New → Project → import the same repo again.
 2. **Root Directory: `client`**. Framework preset: Vite (build `npm run build`, output `dist`).
-3. No environment variables are needed. `client/vercel.json` already forwards `/api` and `/sitemap.xml`
-   to `https://api.lnpak.com` — if you use a different API domain, change it there.
+3. No environment variables are needed. `client/vercel.json` forwards `/api` and `/sitemap.xml` to the API
+   project (currently `https://lnpak-sage.vercel.app`). If you attach `api.lnpak.com` later, you may switch
+   the address there — it works either way.
 4. Deploy, then Settings → Domains → add **`lnpak.com`** and **`www.lnpak.com`** (redirect www → lnpak.com).
 
 **Step 4 — First admin and content (no terminal needed)**

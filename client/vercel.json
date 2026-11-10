@@ -4,8 +4,8 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://api.lnpak.com/api/:path*" },
-    { "source": "/sitemap.xml", "destination": "https://api.lnpak.com/sitemap.xml" },
+    { "source": "/api/:path*", "destination": "https://lnpak-sage.vercel.app/api/:path*" },
+    { "source": "/sitemap.xml", "destination": "https://lnpak-sage.vercel.app/sitemap.xml" },
     { "source": "/((?!assets/|images/|logo\\.jpg|robots\\.txt|favicon).*)", "destination": "/index.html" }
   ],
   "headers": [
