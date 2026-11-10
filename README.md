@@ -106,6 +106,7 @@ cookies work without any cross-domain setup. LN PAK is a business website, so us
    | `CLIENT_URL` | `https://lnpak.com,https://www.lnpak.com` |
    | `PUBLIC_SITE_URL` | `https://lnpak.com` |
    | `COOKIE_SECURE` | `true` |
+   | `SETUP_KEY` | a long secret, used once on `/admin/setup` |
    | SMTP_* / `MAIL_FROM` / `ADMIN_NOTIFY_EMAIL` | optional, for emails |
 
 4. Storage → **Blob** → create a store and connect it to this project. This adds `BLOB_READ_WRITE_TOKEN`;
@@ -120,15 +121,13 @@ cookies work without any cross-domain setup. LN PAK is a business website, so us
    to `https://api.lnpak.com` — if you use a different API domain, change it there.
 4. Deploy, then Settings → Domains → add **`lnpak.com`** and **`www.lnpak.com`** (redirect www → lnpak.com).
 
-**Step 4 — First admin and content** (from your own computer, once)
-```bash
-cd server
-npm install
-# put the Atlas MONGODB_URI and the same JWT_SECRET in server/.env, then:
-npm run create-admin
-npm run seed -- --allow-production   # optional: sample content to start editing (marked "Sample")
-```
-Then log in at `https://lnpak.com/admin`.
+**Step 4 — First admin and content (no terminal needed)**
+1. On the API project add one more environment variable `SETUP_KEY` = any long secret, then redeploy.
+2. Open `https://lnpak.com/admin/setup` (or the website's vercel.app address), enter the setup key, your
+   name, email and password. Tick "Add starter content" to get sample pages to edit.
+3. The page works only while no Super Admin exists. Afterwards add staff from **Admin → Staff**.
+
+(Terminal alternative: `cd server && npm run create-admin` with the Atlas `MONGODB_URI` in `server/.env`.)
 
 **DNS** — at your domain registrar add the records Vercel shows on each project's Domains page
 (`lnpak.com`, `www`, `api`).

@@ -8,6 +8,7 @@ import * as admin from '../controllers/adminController.js';
 import * as clients from '../controllers/clientController.js';
 import { stats } from '../controllers/dashboardController.js';
 import { sitemap } from '../controllers/seoController.js';
+import * as setup from '../controllers/setupController.js';
 
 const r = Router();
 const staff = [authenticate, requireStaff];
@@ -15,6 +16,10 @@ const can = (...p) => [...staff, requirePermission(...p)];
 
 // health check lives in app.js (works even when the database is down)
 r.get('/sitemap.xml', sitemap);
+
+// ---------- first-run setup (only until the first Super Admin exists) ----------
+r.get('/setup/status', setup.status);
+r.post('/setup', authLimiter, validate(setup.schema), setup.run);
 
 // ---------- auth ----------
 r.post('/auth/login', authLimiter, validate(auth.schemas.login), auth.login);

@@ -42,4 +42,6 @@ export const env = {
     from: process.env.MAIL_FROM || 'LN PAK LLC <no-reply@lnpak.com>',
   },
   adminNotifyEmail: process.env.ADMIN_NOTIFY_EMAIL,
+  // Secret needed once on /admin/setup to create the first Super Admin from the browser.
+  setupKey: process.env.SETUP_KEY,
 };

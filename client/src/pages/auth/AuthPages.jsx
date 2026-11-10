@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import { Field, Spinner, Seo } from '../../components/ui';
@@ -60,6 +61,7 @@ export function LoginPage({ portal }) {
     resolver: zodResolver(z.object({ email: z.string().email('Enter a valid email'), password: z.string().min(1, 'Enter your password') })),
   });
   const base = portal === 'admin' ? '/admin' : '/client';
+  const setup = useQuery({ queryKey: ['setup-status'], queryFn: async () => (await api.get('/setup/status')).data.data, enabled: portal === 'admin', retry: false, staleTime: 60000 });
   const submit = async (v) => {
     setErr('');
     try {
@@ -70,6 +72,7 @@ export function LoginPage({ portal }) {
   return (
     <Shell portal={portal} title={portal === 'admin' ? 'Staff sign in' : 'Client login'} subtitle={portal === 'admin' ? 'For LN PAK LLC team members.' : 'Welcome back — sign in to your portal.'}>
       <form onSubmit={handleSubmit(submit)} className="space-y-4" noValidate>
+        {setup.data?.needsSetup && <Link to="/admin/setup" className="block rounded-xl bg-gold-500/15 p-3 text-sm font-semibold text-navy-900">First time here? No admin account exists yet — run the one-time setup →</Link>}
         <Field label="Email" error={errors.email?.message}><input className="input" type="email" autoComplete="email" {...register('email')} /></Field>
         <Field label="Password" error={errors.password?.message}><PasswordInput registration={register('password')} /></Field>
         {err && <p className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700" role="alert">{err}</p>}
@@ -162,6 +165,62 @@ export function ResetPasswordPage({ portal }) {
           <Field label="Confirm password" error={errors.confirm?.message}><PasswordInput registration={register('confirm')} autoComplete="new-password" placeholder="Repeat password" /></Field>
           {err && <p className="text-sm text-rose-700" role="alert">{err}</p>}
           <button className="btn-primary w-full py-3" disabled={isSubmitting}>{isSubmitting && <Spinner className="h-4 w-4 text-white" />}Save password</button>
+        </form>
+      )}
+    </Shell>
+  );
+}
+
+// First-run setup: create the first Super Admin from the browser.
+export function SetupPage() {
+  const nav = useNavigate();
+  const qc = useQueryClient();
+  const [err, setErr] = useState('');
+  const [done, setDone] = useState(null);
+  const status = useQuery({ queryKey: ['setup-status'], queryFn: async () => (await api.get('/setup/status')).data.data, retry: false });
+  const schema = z.object({
+    setupKey: z.string().min(1, 'Enter the setup key'),
+    name: z.string().trim().min(2, 'Enter your full name'),
+    email: z.string().email('Enter a valid email'),
+    password: pw,
+    confirm: z.string(),
+    starterContent: z.boolean(),
+  }).refine((d) => d.password === d.confirm, { message: 'Passwords do not match', path: ['confirm'] });
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({ resolver: zodResolver(schema), defaultValues: { starterContent: true } });
+  const submit = async ({ confirm, ...v }) => {
+    setErr('');
+    try {
+      const r = await api.post('/setup', v);
+      qc.setQueryData(['me'], { user: r.data.data.user, permissions: r.data.data.permissions });
+      setDone(r.data.data);
+    } catch (e) { setErr(e.message); }
+  };
+
+  return (
+    <Shell portal="admin" title="Set up LN PAK LLC" subtitle="Create the first Super Admin account. This page works only once.">
+      {status.isLoading ? <Spinner /> : status.error ? (
+        <p className="rounded-xl bg-rose-50 p-4 text-sm text-rose-700">{status.error.message}</p>
+      ) : done ? (
+        <div className="space-y-4">
+          <p className="rounded-xl bg-emerald-50 p-4 text-sm text-emerald-800">Setup complete. You are signed in as Super Admin.{Object.keys(done.starterContent || {}).length > 0 && ' Starter content was added — every item marked "Sample" should be replaced with real information.'}</p>
+          <button className="btn-primary w-full" onClick={() => nav('/admin', { replace: true })}>Open admin panel</button>
+        </div>
+      ) : !status.data.needsSetup ? (
+        <div className="space-y-4"><p className="text-sm text-slate-600">Setup is already complete.</p><Link to="/admin/login" className="btn-primary w-full">Go to sign in</Link></div>
+      ) : (
+        <form onSubmit={handleSubmit(submit)} className="space-y-4" noValidate>
+          {!status.data.keyConfigured && <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">The server has no SETUP_KEY yet. Add it in Vercel → Settings → Environment Variables, redeploy, then reload this page.</p>}
+          <Field label="Setup key" error={errors.setupKey?.message} hint="The SETUP_KEY value from the server's environment variables"><input className="input" autoComplete="off" {...register('setupKey')} /></Field>
+          <Field label="Your full name" error={errors.name?.message}><input className="input" autoComplete="name" {...register('name')} /></Field>
+          <Field label="Email (your login)" error={errors.email?.message}><input className="input" type="email" autoComplete="email" {...register('email')} /></Field>
+          <Field label="Password" error={errors.password?.message} hint="At least 8 characters with letters and numbers"><PasswordInput registration={register('password')} autoComplete="new-password" /></Field>
+          <Field label="Confirm password" error={errors.confirm?.message}><PasswordInput registration={register('confirm')} autoComplete="new-password" placeholder="Repeat password" /></Field>
+          <label className="flex items-start gap-3 rounded-xl border border-slate-200 p-3 text-sm">
+            <input type="checkbox" className="mt-0.5 h-4 w-4 accent-navy-900" {...register('starterContent')} />
+            <span><strong className="block text-navy-900">Add starter content</strong>Services, countries, tours, universities, scholarships and FAQs to start editing. Items marked "Sample" must be replaced before launch.</span>
+          </label>
+          {err && <p className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700" role="alert">{err}</p>}
+          <button className="btn-primary w-full py-3" disabled={isSubmitting}>{isSubmitting && <Spinner className="h-4 w-4 text-white" />}Create Super Admin</button>
         </form>
       )}
     </Shell>

@@ -3,7 +3,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { PageLoader, Seo } from '../../components/ui';
 import AdminLayout from './AdminLayout';
-import { LoginPage, ResetPasswordPage, ForgotPasswordPage } from '../auth/AuthPages';
+import { LoginPage, ResetPasswordPage, ForgotPasswordPage, SetupPage } from '../auth/AuthPages';
 import Dashboard from './Dashboard';
 
 const LeadsPage = lazy(() => import('./LeadsPage'));
@@ -41,6 +41,7 @@ export default function AdminApp() {
       <Seo title="Admin" noindex />
       <Routes>
         <Route path="login" element={<LoginPage portal="admin" />} />
+        <Route path="setup" element={<SetupPage />} />
         <Route path="forgot-password" element={<ForgotPasswordPage portal="admin" />} />
         <Route path="reset-password" element={<ResetPasswordPage portal="admin" />} />
         <Route element={<RequireStaff><AdminLayout /></RequireStaff>}>
