@@ -157,8 +157,8 @@ upload type/size checks, audit log, no hard-coded credentials.
   `npm run seed -- --fresh` only in development. The 5 scholarships are real programmes with general
   descriptions and official links; deadlines are left empty on purpose.
 - Testimonials are placeholders — publish only real client reviews with permission.
-- Phone / WhatsApp is set to `+7 962 359-59-40` and the domain to `lnpak.com`. The office address
-  (Faisalabad) was taken from the design mockup — confirm it in **Admin → Site Settings**.
+- Contact details are set to phone / WhatsApp `+7 962 359-59-40`, office `Izhevsk, Russia`, email
+  `info@lnpak.com` and domain `lnpak.com`. Add the full street address any time in **Admin → Site Settings**.
 - Policy pages contain placeholder text — add your approved Privacy, Terms and Refund policies.
 - Hero and section images were cut from the design mockup and are low resolution; upload high-quality
   photos in **Site Settings → Homepage hero** and on each tour/service.
