@@ -87,7 +87,8 @@ cookies work without any cross-domain setup. LN PAK is a business website, so us
 (the free Hobby plan is for non-commercial use only).
 
 **Step 1 — Database (MongoDB Atlas)**
-1. Create a cluster at mongodb.com/atlas (choose a region close to your Vercel region).
+1. Create a cluster at mongodb.com/atlas. The API runs in Vercel's Mumbai region (`bom1`, set in
+   `server/vercel.json`) to sit next to the LN PAK cluster (AWS Mumbai); change both together if you move.
 2. Database Access → add a user with a strong password.
 3. Network Access → allow `0.0.0.0/0` (Vercel functions do not have fixed IPs), or use the
    MongoDB Atlas integration from the Vercel Marketplace, which sets this up for you.
