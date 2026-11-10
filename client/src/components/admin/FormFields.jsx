@@ -7,11 +7,18 @@ import { Field, Img, Spinner, ICONS, Icon } from '../ui';
 
 const toDateInput = (v) => (v ? new Date(v).toISOString().slice(0, 10) : '');
 
+const MAX_MB = 4; // Vercel accepts request bodies up to 4.5 MB, so images are sent one at a time
+
 export async function uploadImages(files) {
-  const fd = new FormData();
-  [...files].forEach((f) => fd.append('images', f));
-  const r = await api.post('/admin/uploads/images', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-  return r.data.data.map((x) => x.url);
+  const urls = [];
+  for (const f of [...files]) {
+    if (f.size > MAX_MB * 1024 * 1024) throw new Error(`${f.name} is larger than ${MAX_MB} MB. Please compress it and try again.`);
+    const fd = new FormData();
+    fd.append('images', f);
+    const r = await api.post('/admin/uploads/images', fd, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 60000 });
+    urls.push(r.data.data[0].url);
+  }
+  return urls;
 }
 
 function ImageInput({ value, onChange, multiple }) {

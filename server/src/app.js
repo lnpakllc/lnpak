@@ -9,13 +9,32 @@ import compression from 'compression';
 import path from 'path';
 import fs from 'fs';
 import { env } from './config/env.js';
+import { connectDB } from './config/db.js';
 import routes from './routes/index.js';
 import { sitemap } from './controllers/seoController.js';
-import { apiLimiter, csrfGuard, notFound, errorHandler, PUBLIC_UPLOAD_DIR } from './middleware/common.js';
+import { apiLimiter, csrfGuard, notFound, errorHandler } from './middleware/common.js';
+import { PUBLIC_UPLOAD_DIR } from './services/storage.js';
+import { ensureRoles } from './scripts/roles.js';
+
+// Make sure MongoDB is connected (and built-in roles exist) before a request is handled.
+// Locally this resolves instantly after start-up; on Vercel it connects on the first request
+// of a new function instance and is then reused.
+let rolesReady = null;
+async function ready(_req, _res, next) {
+  try {
+    await connectDB();
+    rolesReady ||= ensureRoles().catch((e) => { rolesReady = null; throw e; });
+    await rolesReady;
+    next();
+  } catch (err) {
+    console.error('Database not reachable:', err.message);
+    next(Object.assign(new Error('Service temporarily unavailable. Please try again in a moment.'), { status: 503 }));
+  }
+}
 
 export function createApp() {
   const app = express();
-  app.set('trust proxy', 1); // correct client IP behind Vercel / Render / Nginx
+  app.set('trust proxy', env.trustProxy); // correct visitor IP behind Vercel / Render / Nginx
   app.disable('x-powered-by');
 
   app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
@@ -31,15 +50,19 @@ export function createApp() {
   app.use(hpp());
   if (env.nodeEnv !== 'test') app.use(morgan(env.isProd ? 'combined' : 'dev'));
 
-  // Public website images only. Private client documents will use signed URLs from private storage.
-  app.use('/uploads/public', express.static(PUBLIC_UPLOAD_DIR, { maxAge: '30d', index: false, dotfiles: 'deny' }));
+  // Locally stored website images (when Vercel Blob is not used).
+  if (!env.blobToken && !env.isVercel) {
+    app.use('/uploads/public', express.static(PUBLIC_UPLOAD_DIR, { maxAge: '30d', index: false, dotfiles: 'deny', fallthrough: false }));
+  }
 
-  app.get('/sitemap.xml', sitemap);
-  app.use('/api', apiLimiter, csrfGuard, (_req, res, next) => { res.set('X-Robots-Tag', 'noindex'); next(); }, routes);
+  app.get('/', (_req, res) => res.json({ success: true, data: { service: 'LN PAK LLC API', health: '/api/health' } }));
+  app.get('/sitemap.xml', ready, sitemap);
+  app.get('/api/health', (_req, res) => res.json({ success: true, data: { status: 'ok', time: new Date().toISOString() } }));
+  app.use('/api', ready, apiLimiter, csrfGuard, (_req, res, next) => { res.set('X-Robots-Tag', 'noindex'); next(); }, routes);
 
-  // Optional: serve the built React app from the same server (single deployment).
+  // Optional: serve the built React app from the same server (single-server hosting such as Render / VPS).
   const clientDist = path.resolve('..', 'client', 'dist');
-  if (env.isProd && fs.existsSync(clientDist)) {
+  if (env.isProd && !env.isVercel && fs.existsSync(clientDist)) {
     app.use(express.static(clientDist, { index: false, maxAge: '7d' }));
     app.get(/^\/(?!api|uploads).*/, (req, res) => {
       if (req.path.startsWith('/admin') || req.path.startsWith('/client')) res.set('X-Robots-Tag', 'noindex, nofollow');
@@ -51,3 +74,7 @@ export function createApp() {
   app.use(errorHandler);
   return app;
 }
+
+// Vercel detects src/app.js and runs this default export as one Vercel Function.
+const app = createApp();
+export default app;

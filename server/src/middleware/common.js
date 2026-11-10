@@ -1,12 +1,10 @@
 import rateLimit from 'express-rate-limit';
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
-import crypto from 'crypto';
 import { ZodError } from 'zod';
 import { env } from '../config/env.js';
 import { ApiError } from '../utils/http.js';
 import { AuditLog } from '../models/system.js';
+import { IMAGE_TYPES } from '../services/storage.js';
 
 // ---------- validation ----------
 // validate(schema) parses req.body with zod and replaces it with the clean, typed result.
@@ -51,22 +49,15 @@ export const authLimiter = limiter(15, 20, 'Too many login attempts. Please wait
 export const formLimiter = limiter(60, 15, 'Too many submissions from this connection. Please try again later or call us.');
 
 // ---------- uploads (public website images only) ----------
-const IMAGE_TYPES = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' };
-const publicDir = path.resolve(env.uploadDir, 'public');
-fs.mkdirSync(publicDir, { recursive: true });
-
+// Files are kept in memory, validated, then saved by services/storage.js (Vercel Blob or local disk).
 export const imageUpload = multer({
-  storage: multer.diskStorage({
-    destination: publicDir,
-    filename: (_req, file, cb) => cb(null, `${Date.now()}-${crypto.randomBytes(6).toString('hex')}${IMAGE_TYPES[file.mimetype]}`),
-  }),
+  storage: multer.memoryStorage(),
   limits: { fileSize: env.maxUploadMb * 1024 * 1024, files: 10 },
   fileFilter: (_req, file, cb) => {
     if (IMAGE_TYPES[file.mimetype]) return cb(null, true);
     cb(ApiError.badRequest('Only JPG, PNG or WEBP images are allowed'));
   },
 });
-export const PUBLIC_UPLOAD_DIR = publicDir;
 
 // ---------- audit ----------
 export async function audit(req, action, entity, entityId, details) {

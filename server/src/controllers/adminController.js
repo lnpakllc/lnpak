@@ -7,6 +7,7 @@ import { Notification, Setting, NewsletterSubscriber, AuditLog } from '../models
 import { PERMISSIONS } from '../config/permissions.js';
 import { invalidateRoleCache } from '../middleware/auth.js';
 import { audit } from '../middleware/common.js';
+import { savePublicImage } from '../services/storage.js';
 import { ApiError, asyncHandler, ok, created, getPaging, pageMeta, escapeRegex } from '../utils/http.js';
 
 const pw = z.string().min(8, 'Password must be at least 8 characters').max(100).regex(/[A-Za-z]/, 'Password needs a letter').regex(/[0-9]/, 'Password needs a number');
@@ -204,7 +205,10 @@ export const deleteSubscriber = asyncHandler(async (req, res) => {
 export const uploadImages = asyncHandler(async (req, res) => {
   const files = req.files || (req.file ? [req.file] : []);
   if (!files.length) throw ApiError.badRequest('No image received');
-  created(res, files.map((f) => ({ url: `/uploads/public/${f.filename}`, size: f.size })));
+  const saved = [];
+  for (const f of files) saved.push(await savePublicImage(f));
+  await audit(req, 'upload.image', 'Upload', null, { files: saved.map((x) => x.url) });
+  created(res, saved);
 });
 
 // ---------- audit ----------

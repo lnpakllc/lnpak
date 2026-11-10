@@ -74,26 +74,80 @@ cannot reach admin APIs, CSV/Excel export, CMS publish/unpublish, NoSQL-injectio
 
 ## 2. Going live (lnpak.com)
 
-### Option A — one server (simplest): Render / Railway / a VPS
-1. Create a free **MongoDB Atlas** cluster, copy the connection string.
-2. Deploy the whole repo. Build command:
-   `cd client && npm install && npm run build && cd ../server && npm install`
-   Start command: `cd server && npm start`
-3. Environment variables (from `server/.env.example`): `NODE_ENV=production`, `MONGODB_URI`, `JWT_SECRET`,
-   `CLIENT_URL=https://lnpak.com`, `PUBLIC_SITE_URL=https://lnpak.com`, `COOKIE_SECURE=true`, SMTP settings.
+### Option A — Vercel (recommended): two projects from this one GitHub repo
+
+```
+visitor ──► lnpak.com  (Vercel project "lnpak-web", folder client/)
+               │  /api/*  and /sitemap.xml are forwarded ──►  api.lnpak.com  (Vercel project "lnpak-api", folder server/)
+               │                                                    │
+               └─ images from Vercel Blob                           └─► MongoDB Atlas
+```
+Because the website forwards `/api` to the API, the browser only ever talks to `lnpak.com`, so login
+cookies work without any cross-domain setup. LN PAK is a business website, so use a Vercel **Pro** team
+(the free Hobby plan is for non-commercial use only).
+
+**Step 1 — Database (MongoDB Atlas)**
+1. Create a cluster at mongodb.com/atlas (choose a region close to your Vercel region).
+2. Database Access → add a user with a strong password.
+3. Network Access → allow `0.0.0.0/0` (Vercel functions do not have fixed IPs), or use the
+   MongoDB Atlas integration from the Vercel Marketplace, which sets this up for you.
+4. Copy the connection string, e.g. `mongodb+srv://USER:PASS@cluster0.xxxx.mongodb.net/lnpak`.
+
+**Step 2 — API project (`lnpak-api`)**
+1. Vercel → Add New → Project → import `lnpakllc/lnpak`.
+2. **Root Directory: `server`**. Framework preset: Express (detected automatically from `src/app.js`).
+3. Environment variables:
+
+   | Name | Value |
+   |---|---|
+   | `NODE_ENV` | `production` |
+   | `MONGODB_URI` | your Atlas connection string |
+   | `JWT_SECRET` | a long random string (see section 1) |
+   | `CLIENT_URL` | `https://lnpak.com,https://www.lnpak.com` |
+   | `PUBLIC_SITE_URL` | `https://lnpak.com` |
+   | `COOKIE_SECURE` | `true` |
+   | SMTP_* / `MAIL_FROM` / `ADMIN_NOTIFY_EMAIL` | optional, for emails |
+
+4. Storage → **Blob** → create a store and connect it to this project. This adds `BLOB_READ_WRITE_TOKEN`;
+   all images uploaded in the admin panel are then stored there (Vercel's own disk is not permanent).
+5. Deploy, then Settings → Domains → add **`api.lnpak.com`**.
+6. Check `https://api.lnpak.com/api/health` shows `"status":"ok"`.
+
+**Step 3 — Website project (`lnpak-web`)**
+1. Add New → Project → import the same repo again.
+2. **Root Directory: `client`**. Framework preset: Vite (build `npm run build`, output `dist`).
+3. No environment variables are needed. `client/vercel.json` already forwards `/api` and `/sitemap.xml`
+   to `https://api.lnpak.com` — if you use a different API domain, change it there.
+4. Deploy, then Settings → Domains → add **`lnpak.com`** and **`www.lnpak.com`** (redirect www → lnpak.com).
+
+**Step 4 — First admin and content** (from your own computer, once)
+```bash
+cd server
+npm install
+# put the Atlas MONGODB_URI and the same JWT_SECRET in server/.env, then:
+npm run create-admin
+npm run seed -- --allow-production   # optional: sample content to start editing (marked "Sample")
+```
+Then log in at `https://lnpak.com/admin`.
+
+**DNS** — at your domain registrar add the records Vercel shows on each project's Domains page
+(`lnpak.com`, `www`, `api`).
+
+**Good to know on Vercel**
+- Each push to `main` redeploys both projects; other branches get preview URLs.
+- One request can carry at most 4.5 MB, so images are uploaded one by one, max 4 MB each.
+- Rate limits are kept per function instance, so they are softer than on a single server. For stronger
+  protection turn on the Vercel Firewall rate-limit rules for `/api/leads` and `/api/auth/*`.
+- If rate limits ever treat all visitors as one IP, set `TRUST_PROXY=2` on the API project.
+
+### Option B — one server: Render / Railway / a VPS
+1. Create a MongoDB Atlas cluster as above.
+2. Deploy the whole repo. Build: `cd client && npm install && npm run build && cd ../server && npm install`
+   Start: `cd server && npm start`
+3. Environment variables as in the table above (`CLIENT_URL=https://lnpak.com`).
 4. In production the API also serves the built website, so `lnpak.com` points to this one server.
-5. Run `npm run create-admin` once (Render/Railway shell) to make your Super Admin.
-
-### Option B — website on Vercel, API on Render/Railway
-1. Deploy `server/` as above (without the client build) at e.g. `api.lnpak.com`.
-2. Deploy `client/` on Vercel (framework: Vite). In `client/vercel.json` replace `YOUR-API-DOMAIN` with
-   your API domain — Vercel then forwards `/api`, `/uploads` and `/sitemap.xml` to it, so cookies stay
-   on `lnpak.com` and no CORS setup is needed.
-3. On the API set `CLIENT_URL=https://lnpak.com`.
-
-> Uploaded website images are stored on the API server's disk (`server/uploads/public`). On hosts with
-> temporary disks (Render free tier, Railway without a volume) attach a persistent disk/volume, or move
-> uploads to cloud storage — that is planned together with the private document module (see below).
+5. Images are saved on the server disk unless `BLOB_READ_WRITE_TOKEN` is set — use a persistent disk/volume.
+6. Run `npm run create-admin` once to make your Super Admin.
 
 ### Email (optional but recommended)
 Fill `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` (e.g. Gmail app password, Zoho,

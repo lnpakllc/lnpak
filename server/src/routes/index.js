@@ -13,8 +13,7 @@ const r = Router();
 const staff = [authenticate, requireStaff];
 const can = (...p) => [...staff, requirePermission(...p)];
 
-// ---------- health ----------
-r.get('/health', (_req, res) => res.json({ success: true, data: { status: 'ok', time: new Date().toISOString() } }));
+// health check lives in app.js (works even when the database is down)
 r.get('/sitemap.xml', sitemap);
 
 // ---------- auth ----------

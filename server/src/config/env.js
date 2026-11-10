@@ -5,14 +5,13 @@ dotenv.config();
 const required = ['MONGODB_URI', 'JWT_SECRET'];
 for (const key of required) {
   if (!process.env[key]) {
-    console.error(`Missing required environment variable: ${key}. Copy .env.example to .env and fill it in.`);
-    process.exit(1);
+    // Throw (not process.exit) so the error shows up in Vercel's function logs as well.
+    throw new Error(`Missing required environment variable: ${key}. Copy .env.example to .env (or add it in Vercel → Settings → Environment Variables).`);
   }
 }
 
 if (process.env.NODE_ENV === 'production' && process.env.JWT_SECRET.length < 32) {
-  console.error('JWT_SECRET must be at least 32 characters in production.');
-  process.exit(1);
+  throw new Error('JWT_SECRET must be at least 32 characters in production.');
 }
 
 const list = (v, fallback = '') => (v || fallback).split(',').map((s) => s.trim()).filter(Boolean);
@@ -27,8 +26,14 @@ export const env = {
   clientUrls: list(process.env.CLIENT_URL, 'http://localhost:5173'),
   cookieSameSite: process.env.COOKIE_SAMESITE || 'lax',
   cookieSecure: process.env.COOKIE_SECURE ? process.env.COOKIE_SECURE === 'true' : process.env.NODE_ENV === 'production',
+  isVercel: !!process.env.VERCEL,
+  // Number of proxies in front of the API (Vercel edge = 1). Used for correct visitor IPs in rate limits.
+  trustProxy: Number(process.env.TRUST_PROXY || 1),
   uploadDir: process.env.UPLOAD_DIR || 'uploads',
-  maxUploadMb: Number(process.env.MAX_UPLOAD_MB || 5),
+  // Vercel functions accept request bodies up to 4.5 MB, so keep single uploads under that.
+  maxUploadMb: Math.min(Number(process.env.MAX_UPLOAD_MB || 4), process.env.VERCEL ? 4 : 50),
+  // When set, website images go to Vercel Blob instead of the local disk (required on Vercel).
+  blobToken: process.env.BLOB_READ_WRITE_TOKEN,
   smtp: {
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT || 587),
