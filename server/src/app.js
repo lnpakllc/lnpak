@@ -27,8 +27,11 @@ async function ready(_req, _res, next) {
     await rolesReady;
     next();
   } catch (err) {
-    console.error('Database not reachable:', err.message);
-    next(Object.assign(new Error('Service temporarily unavailable. Please try again in a moment.'), { status: 503 }));
+    // Full reason goes to the server logs (Vercel → Logs); visitors get a short, safe message.
+    console.error('DATABASE NOT REACHABLE:', err.name, err.message);
+    const hint = /auth|bad auth|authentication/i.test(err.message) ? ' (database login failed)'
+      : /whitelist|ip|timed out|ENOTFOUND|querySrv|Server selection/i.test(err.message) ? ' (database not reachable)' : '';
+    next(Object.assign(new Error(`Service temporarily unavailable${hint}. Please try again in a moment.`), { status: 503 }));
   }
 }
 

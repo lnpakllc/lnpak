@@ -93,7 +93,8 @@ export const errorHandler = (err, req, res, _next) => {
 
   if (status >= 500) {
     console.error(err);
-    if (env.isProd) message = 'Something went wrong on our side. Please try again.';
+    // Hide unexpected internal errors in production; keep deliberate messages such as 503 "unavailable".
+    if (env.isProd && status === 500) message = 'Something went wrong on our side. Please try again.';
   }
   res.status(status).json({ success: false, message, ...(details ? { details } : {}) });
 };
