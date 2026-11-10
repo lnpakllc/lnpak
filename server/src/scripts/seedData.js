@@ -152,9 +152,18 @@ export async function seedContent({ fresh = false, log = () => {} } = {}) {
 }
 
 // Creates the website settings (contact details, hero, pages) if they do not exist yet.
+// A blank settings record (auto-created when the website was first opened) is filled in too.
 export async function seedSettings({ fresh = false } = {}) {
   if (fresh) await Setting.deleteMany({ key: 'site' });
-  if (await Setting.exists({ key: 'site' })) return false;
-  await Setting.create(settings);
-  return true;
+  const doc = await Setting.findOne({ key: 'site' });
+  if (!doc) { await Setting.create(settings); return true; }
+  let changed = false;
+  for (const [section, defaults] of Object.entries(settings)) {
+    if (section === 'key') continue;
+    const current = doc.get(section);
+    const empty = current == null || current === '' || (typeof current === 'object' && !Object.values(current.toObject ? current.toObject() : current).some(Boolean));
+    if (empty) { doc.set(section, defaults); changed = true; }
+  }
+  if (changed) await doc.save();
+  return changed;
 }
