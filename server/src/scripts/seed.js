@@ -122,7 +122,7 @@ const faqs = [
 
 const settings = {
   key: 'site',
-  contact: { email: 'info@lnpak.com', phone: '+92 300 1234567', whatsapp: '923001234567', address: 'Office #52, Business Hub, Faisalabad, Pakistan', officeHours: 'Mon – Sat, 10:00 am – 7:00 pm' },
+  contact: { email: 'info@lnpak.com', phone: '+7 962 359-59-40', whatsapp: '79623595940', address: 'Office #52, Business Hub, Faisalabad, Pakistan', officeHours: 'Mon – Sat, 10:00 am – 7:00 pm' },
   social: { facebook: 'https://facebook.com/', instagram: 'https://instagram.com/', linkedin: 'https://linkedin.com/', youtube: 'https://youtube.com/' },
   hero: {
     eyebrow: 'Dream • Plan • Travel • Study • Settle',

@@ -40,7 +40,7 @@ export function ContactPage() {
   const c = s.contact || {};
   const items = [
     [Phone, 'Call us', c.phone, c.phone && `tel:${c.phone.replace(/\s/g, '')}`],
-    [MessageCircle, 'WhatsApp', c.whatsapp && `+${c.whatsapp}`, c.whatsapp && whatsappLink(c.whatsapp)],
+    [MessageCircle, 'WhatsApp', c.whatsapp && ((c.phone || '').replace(/\D/g, '') === c.whatsapp ? c.phone : `+${c.whatsapp}`), c.whatsapp && whatsappLink(c.whatsapp)],
     [Mail, 'Email', c.email, c.email && `mailto:${c.email}`],
     [MapPin, 'Office', c.address, c.mapUrl],
     [Clock, 'Office hours', c.officeHours],

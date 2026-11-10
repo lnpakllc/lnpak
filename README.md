@@ -157,8 +157,8 @@ upload type/size checks, audit log, no hard-coded credentials.
   `npm run seed -- --fresh` only in development. The 5 scholarships are real programmes with general
   descriptions and official links; deadlines are left empty on purpose.
 - Testimonials are placeholders — publish only real client reviews with permission.
-- Contact details (phone `+92 300 1234567`, address) were taken from the design mockup — confirm them in
-  **Admin → Site Settings**, including the WhatsApp number used by every WhatsApp button.
+- Phone / WhatsApp is set to `+7 962 359-59-40` and the domain to `lnpak.com`. The office address
+  (Faisalabad) was taken from the design mockup — confirm it in **Admin → Site Settings**.
 - Policy pages contain placeholder text — add your approved Privacy, Terms and Refund policies.
 - Hero and section images were cut from the design mockup and are low resolution; upload high-quality
   photos in **Site Settings → Homepage hero** and on each tour/service.
