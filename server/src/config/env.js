@@ -23,6 +23,18 @@ function normalizeCloudinaryUrl(raw) {
   return v;
 }
 
+// Easier alternative: three separate variables copied straight from Cloudinary → Settings → API Keys.
+function cloudinaryFromParts(requireAll) {
+  const clean = (v) => String(v || '').trim().replace(/^["']|["']$/g, '').trim();
+  const name = clean(process.env.CLOUDINARY_CLOUD_NAME);
+  const key = clean(process.env.CLOUDINARY_API_KEY);
+  const secret = clean(process.env.CLOUDINARY_API_SECRET);
+  if (requireAll ? !(name && key && secret) : !(name || key || secret)) return undefined;
+  const v = `cloudinary://${key}:${encodeURIComponent(secret)}@${name}`;
+  process.env.CLOUDINARY_URL = v;
+  return v;
+}
+
 const list = (v, fallback = '') => (v || fallback).split(',').map((s) => s.trim()).filter(Boolean);
 
 export const env = {
@@ -45,7 +57,8 @@ export const env = {
   blobToken: process.env.BLOB_READ_WRITE_TOKEN,
   // Cloudinary (preferred for images when set): the "API environment variable" from the Cloudinary dashboard,
   // e.g. cloudinary://API_KEY:API_SECRET@CLOUD_NAME
-  cloudinaryUrl: normalizeCloudinaryUrl(process.env.CLOUDINARY_URL),
+  // The three separate values win when all are filled in; otherwise CLOUDINARY_URL is used.
+  cloudinaryUrl: cloudinaryFromParts(true) || normalizeCloudinaryUrl(process.env.CLOUDINARY_URL) || cloudinaryFromParts(false),
   smtp: {
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT || 587),

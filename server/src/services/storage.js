@@ -52,10 +52,10 @@ const setupError = (msg) => Object.assign(new Error(msg), { status: 503 });
 // Checks the value has the shape cloudinary://API_KEY:API_SECRET@CLOUD_NAME and no placeholders.
 export function parseCloudinaryUrl(value) {
   const m = /^cloudinary:\/\/([^:@\s]+):([^@\s]+)@([^/?\s]+)\/?$/.exec(value || '');
-  if (!m) throw setupError('CLOUDINARY_URL is not in the right format. It must look like cloudinary://API_KEY:API_SECRET@CLOUD_NAME (copy "API environment variable" from Cloudinary → Settings → API Keys).');
+  if (!m) throw setupError('Cloudinary settings are incomplete or CLOUDINARY_URL is not in the right format. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET, or set CLOUDINARY_URL as cloudinary://API_KEY:API_SECRET@CLOUD_NAME.');
   const [, apiKey, apiSecret, cloudName] = m;
   if ([apiKey, apiSecret, cloudName].some((x) => /[<>*]/.test(x))) {
-    throw setupError('CLOUDINARY_URL still contains a placeholder such as <your_api_secret> or *****. Reveal the real secret in Cloudinary and paste the full value.');
+    throw setupError('The Cloudinary API secret is still hidden (<your_api_secret> or *****). In Cloudinary → Settings → API Keys click the eye icon to reveal the real secret and paste that.');
   }
   return { cloud_name: cloudName, api_key: apiKey, api_secret: decodeURIComponent(apiSecret) };
 }
