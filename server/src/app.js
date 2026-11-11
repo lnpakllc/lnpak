@@ -15,6 +15,7 @@ import { sitemap } from './controllers/seoController.js';
 import { apiLimiter, csrfGuard, notFound, errorHandler } from './middleware/common.js';
 import { PUBLIC_UPLOAD_DIR } from './services/storage.js';
 import { ensureRoles } from './scripts/roles.js';
+import { runMigrations } from './scripts/migrations.js';
 
 // Make sure MongoDB is connected (and built-in roles exist) before a request is handled.
 // Locally this resolves instantly after start-up; on Vercel it connects on the first request
@@ -23,7 +24,7 @@ let rolesReady = null;
 async function ready(_req, _res, next) {
   try {
     await connectDB();
-    rolesReady ||= ensureRoles().catch((e) => { rolesReady = null; throw e; });
+    rolesReady ||= ensureRoles().then(runMigrations).catch((e) => { rolesReady = null; throw e; });
     await rolesReady;
     next();
   } catch (err) {

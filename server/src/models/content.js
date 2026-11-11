@@ -73,6 +73,7 @@ export const Country = mongoose.model(
       visas: [visaInfo],
       faqs: [faqItem],
       lastReviewedAt: Date, // shown on the page so visitors know how fresh the info is
+      showInFooter: { type: Boolean, default: false }, // footer "Popular Destinations"
     },
     'name',
   ),

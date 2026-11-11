@@ -3,7 +3,7 @@ export const SERVICES = [
   { value: 'visit_visa', label: 'Visit Visa' },
   { value: 'business_visa', label: 'Business Visa' },
   { value: 'work_permit', label: 'Work Permit' },
-  { value: 'immigration', label: 'Immigration' },
+  { value: 'business_setup', label: 'Business Setup & Relocation' },
   { value: 'hajj_umrah', label: 'Hajj & Umrah' },
   { value: 'religious_tour', label: 'Religious & Spiritual Tour' },
   { value: 'tour_booking', label: 'Tour Package' },
@@ -13,7 +13,8 @@ export const SERVICES = [
   { value: 'documentation', label: 'Documentation Services' },
   { value: 'general', label: 'General Inquiry' },
 ];
-export const serviceLabel = (v) => SERVICES.find((s) => s.value === v)?.label || v || '—';
+const LEGACY_SERVICES = { immigration: 'Immigration' }; // older leads
+export const serviceLabel = (v) => SERVICES.find((s) => s.value === v)?.label || LEGACY_SERVICES[v] || v || '—';
 
 export const LEAD_STATUSES = [
   { value: 'new', label: 'New', color: 'bg-sky-100 text-sky-800', dot: 'bg-sky-500' },
@@ -34,7 +35,7 @@ export const PRIORITIES = [
   { value: 'high', label: 'High', color: 'text-rose-600' },
 ];
 
-export const DESTINATIONS = ['United Kingdom', 'United States', 'Canada', 'Australia', 'Germany', 'France', 'Italy', 'Turkey', 'United Arab Emirates', 'Saudi Arabia', 'Malaysia', 'China', 'Other'];
+export const DESTINATIONS = ['United Kingdom', 'United States', 'Russia', 'Uzbekistan', 'Kyrgyzstan', 'Tajikistan', 'Germany', 'France', 'Italy', 'Turkey', 'Canada', 'Australia', 'United Arab Emirates', 'Saudi Arabia', 'Malaysia', 'China', 'Other'];
 
 export const TOUR_CATEGORIES = [
   ['turkey', 'Turkey Tours'], ['dubai', 'Dubai Tours'], ['malaysia', 'Malaysia Tours'], ['saudi', 'Saudi Arabia Tours'],

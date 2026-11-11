@@ -3,11 +3,13 @@
 import { env } from './config/env.js';
 import { connectDB } from './config/db.js';
 import { ensureRoles } from './scripts/roles.js';
+import { runMigrations } from './scripts/migrations.js';
 import app from './app.js';
 
 async function start() {
   await connectDB();
   await ensureRoles();
+  await runMigrations();
   const server = app.listen(env.port, () => console.log(`LN PAK API running on port ${env.port} (${env.nodeEnv})`));
   const shutdown = () => server.close(() => process.exit(0));
   process.on('SIGTERM', shutdown);

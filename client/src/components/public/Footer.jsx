@@ -55,7 +55,7 @@ export function Newsletter() {
 export default function Footer() {
   const s = useSettings();
   const { data: services } = useQuery({ queryKey: ['content', 'services', 'footer'], queryFn: () => getData('/content/services', { limit: 8 }), staleTime: 600000 });
-  const { data: countries } = useQuery({ queryKey: ['content', 'countries', 'footer'], queryFn: () => getData('/content/countries', { featured: 'true', limit: 6 }), staleTime: 600000 });
+  const { data: countries } = useQuery({ queryKey: ['content', 'countries', 'footer'], queryFn: () => getData('/content/countries', { footer: 'true', limit: 6 }), staleTime: 600000 });
   const head = 'mb-4 text-sm font-bold text-white';
   const link = 'text-sm text-white/70 transition hover:text-gold-500';
   return (

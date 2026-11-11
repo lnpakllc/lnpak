@@ -39,7 +39,7 @@ export function TourCard({ t }) {
         <div className="mt-auto pt-4">
           {t.price != null ? (
             <span className="inline-flex items-center gap-2 rounded-lg bg-navy-900 px-3 py-1.5 text-sm font-bold text-white">From {money(t.price, t.currency)}<ArrowRight className="h-4 w-4" /></span>
-          ) : <span className="btn-outline btn-sm">View package</span>}
+          ) : <span className="inline-flex items-center gap-2 rounded-lg bg-navy-900 px-3 py-1.5 text-sm font-bold text-white">View details<ArrowRight className="h-4 w-4" /></span>}
         </div>
       </div>
     </Link>

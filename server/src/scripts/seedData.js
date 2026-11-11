@@ -3,6 +3,9 @@
 // Used by `npm run seed` and by the first-run setup page (/admin/setup).
 import { Service, Country, TourPackage, University, Scholarship, Testimonial, Faq } from '../models/content.js';
 import { Setting } from '../models/system.js';
+import {
+  CONTACT_EMAIL, OFFICE_HOURS, ABOUT, BUSINESS_SETUP_SERVICE, NEW_COUNTRIES, COUNTRY_ORDER, HOMEPAGE_COUNTRIES, FOOTER_COUNTRIES,
+} from './contentDefaults.js';
 
 const VERIFY = 'Requirements change often. Please confirm the latest rules with our consultant and the official embassy or immigration website before applying.';
 
@@ -11,7 +14,7 @@ const services = [
   { title: 'Visit Visa', serviceType: 'visit_visa', icon: 'Plane', shortDescription: 'Explore the world with ease — tourist and family visit visa assistance.', features: ['Eligibility check', 'Document checklist', 'Travel itinerary and hotel bookings', 'Application form filling'] },
   { title: 'Business Visa', serviceType: 'business_visa', icon: 'Briefcase', shortDescription: 'Grow your business globally with business and conference visa support.', features: ['Invitation letter guidance', 'Company document checklist', 'Application preparation'] },
   { title: 'Work Permit', serviceType: 'work_permit', icon: 'HardHat', shortDescription: 'Build your career abroad with lawful work permit guidance.', features: ['Profile assessment', 'Employer documentation guidance', 'Work visa application support'] },
-  { title: 'Immigration Services', serviceType: 'immigration', icon: 'Globe2', shortDescription: 'Guidance on permanent residence and long-term immigration pathways.', features: ['Pathway assessment', 'Points and eligibility review', 'Document preparation'] },
+  { title: BUSINESS_SETUP_SERVICE.title, serviceType: BUSINESS_SETUP_SERVICE.serviceType, icon: BUSINESS_SETUP_SERVICE.icon, shortDescription: BUSINESS_SETUP_SERVICE.shortDescription, features: BUSINESS_SETUP_SERVICE.features },
   { title: 'Religious & Spiritual Tours', serviceType: 'religious_tour', icon: 'Landmark', shortDescription: 'Ziyarat and spiritual journeys planned with care.', features: ['Group and family tours', 'Hotels near holy sites', 'Guided ziyarat'] },
   { title: 'Hajj & Umrah', serviceType: 'hajj_umrah', icon: 'Moon', image: '/images/tour-3.jpg', shortDescription: 'Complete Hajj and Umrah packages — visa, flights, hotels and transport.', features: ['Umrah visa processing', 'Flights and hotels', 'Ground transport', 'Ziyarat tours'] },
   { title: 'Documentation Services', serviceType: 'documentation', icon: 'FileText', shortDescription: 'Complete assistance with attestation, translation and application documents.', features: ['Document checklists', 'Attestation guidance', 'Translation coordination', 'Form filling'] },
@@ -28,6 +31,7 @@ const countryList = [
   ['United Kingdom', 'GB', 'Europe'], ['United States', 'US', 'North America'], ['Canada', 'CA', 'North America'], ['Australia', 'AU', 'Oceania'],
   ['Germany', 'DE', 'Europe'], ['France', 'FR', 'Europe'], ['Italy', 'IT', 'Europe'], ['Turkey', 'TR', 'Europe & Asia'],
   ['United Arab Emirates', 'AE', 'Middle East'], ['Saudi Arabia', 'SA', 'Middle East'], ['Malaysia', 'MY', 'Asia'], ['China', 'CN', 'Asia'],
+  ...NEW_COUNTRIES,
 ];
 const visa = (type, title, country) => ({
   type, title,
@@ -37,29 +41,35 @@ const visa = (type, title, country) => ({
   process: ['Free assessment with LN PAK', 'Document collection and review', 'Online application / appointment booking', 'Biometrics or interview where required', 'Decision by the embassy'],
   processingNote: VERIFY,
 });
-const countries = countryList.map(([name, isoCode, region], i) => ({
-  name, isoCode, region, sortOrder: i, isFeatured: i < 8,
+export const countryTemplate = (name, isoCode, region) => ({
+  name, isoCode, region,
   overview: `Sample destination overview for ${name}. Add a verified overview, popular cities and key facts from the admin panel.`,
   visas: [visa('study_visa', 'Study Visa', name), visa('visit_visa', 'Visit Visa', name), visa('work_permit', 'Work Permit', name), visa('business_visa', 'Business Visa', name)],
   faqs: [{ question: `How long does a ${name} visa take?`, answer: `Processing times vary by visa type and season. ${VERIFY}` }],
+});
+const countries = countryList.map(([name, isoCode, region]) => ({
+  ...countryTemplate(name, isoCode, region),
+  sortOrder: COUNTRY_ORDER.indexOf(name),
+  isFeatured: HOMEPAGE_COUNTRIES.includes(name),
+  showInFooter: FOOTER_COUNTRIES.includes(name),
 }));
 
 const days = (n) => new Date(Date.now() + n * 864e5);
-const tour = (title, category, destination, img, d, n, price, extra = {}) => ({
-  title, category, destination, images: [img], durationDays: d, durationNights: n, price, currency: 'USD',
-  priceNote: 'Sample price — per person on twin sharing. Update before publishing.',
+// Tour packages are shown without prices (price on request via the booking inquiry).
+const tour = (title, category, destination, img, d, n, extra = {}) => ({
+  title, category, destination, images: [img], durationDays: d, durationNights: n,
   departureDates: [days(30), days(60)], hotel: '4-star hotel (sample)', transport: 'Airport transfers and private coach',
-  summary: `A sample ${d}-day ${destination} package. Edit itinerary, hotels and price in Admin → Tour Packages.`,
+  summary: `A sample ${d}-day ${destination} package. Edit itinerary and hotels in Admin → Tour Packages.`,
   included: ['Hotel accommodation', 'Daily breakfast', 'Airport transfers', 'Guided city tour'],
   excluded: ['International flights (unless stated)', 'Visa fees', 'Personal expenses'],
   itinerary: Array.from({ length: Math.min(d, 5) }, (_, k) => ({ day: k + 1, title: k === 0 ? 'Arrival' : `Day ${k + 1} sightseeing`, description: 'Sample itinerary text — replace with the real plan.' })),
   isFeatured: true, ...extra,
 });
 const tours = [
-  tour('Turkey Tour', 'turkey', 'Istanbul & Cappadocia', '/images/tour-0.jpg', 7, 6, 699),
-  tour('Dubai Tour', 'dubai', 'Dubai', '/images/tour-1.jpg', 5, 4, 499),
-  tour('Malaysia Tour', 'malaysia', 'Kuala Lumpur & Langkawi', '/images/tour-2.jpg', 6, 5, 599),
-  tour('Saudi Umrah Package', 'umrah', 'Makkah & Madinah', '/images/tour-3.jpg', 14, 13, 1299, { hotel: 'Hotels near Haram (sample)' }),
+  tour('Turkey Tour', 'turkey', 'Istanbul & Cappadocia', '/images/tour-0.jpg', 7, 6),
+  tour('Dubai Tour', 'dubai', 'Dubai', '/images/tour-1.jpg', 5, 4),
+  tour('Malaysia Tour', 'malaysia', 'Kuala Lumpur & Langkawi', '/images/tour-2.jpg', 6, 5),
+  tour('Saudi Umrah Package', 'umrah', 'Makkah & Madinah', '/images/tour-3.jpg', 14, 13, { hotel: 'Hotels near Haram (sample)' }),
 ];
 
 const uni = (name, country, city, programs, extra = {}) => ({
@@ -113,7 +123,7 @@ const faqs = [
 
 const settings = {
   key: 'site',
-  contact: { email: 'info@lnpak.com', phone: '+7 962 359-59-40', whatsapp: '79623595940', address: 'Izhevsk, Russia', officeHours: 'Mon – Sat, 10:00 am – 7:00 pm' },
+  contact: { email: CONTACT_EMAIL, phone: '+7 962 359-59-40', whatsapp: '79623595940', address: 'Izhevsk, Russia', officeHours: OFFICE_HOURS },
   social: { facebook: 'https://facebook.com/', instagram: 'https://instagram.com/', linkedin: 'https://linkedin.com/', youtube: 'https://youtube.com/' },
   hero: {
     eyebrow: 'Dream • Plan • Travel • Study • Settle',
@@ -121,12 +131,7 @@ const settings = {
     subtitle: 'Expert Visa, Travel, Education and Immigration Consultancy Services for a Better Future Abroad.',
     image: '/images/hero-landmarks.jpg',
   },
-  about: {
-    title: 'About LN PAK LLC',
-    body: 'LN PAK LLC is a visa, travel, education and immigration consultancy helping students, families, professionals and pilgrims plan their journey abroad.\n\nWe believe in honest advice, transparent fees and complete, well-prepared applications.',
-    mission: 'To make international study, travel and migration simple, transparent and well-guided for every client.',
-    vision: 'To be the most trusted global journey partner for families and students in Pakistan and beyond.',
-  },
+  about: ABOUT,
   footerAbout: 'Expert visa, travel, education and immigration consultancy — your global journey partner.',
   pages: {
     privacy: 'This is placeholder privacy policy text. Replace it in Admin → Settings → Pages with your approved policy before launch.',

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { Mail, Phone, MapPin, ChevronDown, Menu, X, ArrowRight, UserCircle2 } from 'lucide-react';
+import { Mail, Phone, MapPin, Clock, ChevronDown, Menu, X, ArrowRight, UserCircle2 } from 'lucide-react';
 import { useSettings } from '../../hooks/useSettings';
 import { useConsult } from '../../context/ConsultContext';
 import { useAuth } from '../../context/AuthContext';
@@ -12,7 +12,7 @@ export const NAV = [
     label: 'Services', to: '/services',
     children: [
       ['/services/study-visa', 'Study Visa'], ['/services/visit-visa', 'Visit Visa'], ['/services/business-visa', 'Business Visa'],
-      ['/services/work-permit', 'Work Permit'], ['/services/immigration-services', 'Immigration'], ['/services/hajj-and-umrah', 'Hajj & Umrah'],
+      ['/services/work-permit', 'Work Permit'], ['/services/business-setup-and-relocation', 'Business Setup & Relocation'], ['/services/hajj-and-umrah', 'Hajj & Umrah'],
       ['/services/documentation-services', 'Documentation'], ['/services', 'All services →'],
     ],
   },
@@ -52,6 +52,7 @@ export default function Header() {
             {s.contact?.email && <a href={`mailto:${s.contact.email}`} className="flex items-center gap-1.5 hover:text-white"><Mail className="h-3.5 w-3.5" />{s.contact.email}</a>}
             {s.contact?.phone && <a href={`tel:${s.contact.phone.replace(/\s/g, '')}`} className="flex items-center gap-1.5 hover:text-white"><Phone className="h-3.5 w-3.5" />{s.contact.phone}</a>}
             {s.contact?.address && <span className="hidden items-center gap-1.5 lg:flex"><MapPin className="h-3.5 w-3.5" />{s.contact.address}</span>}
+            {s.contact?.officeHours && <span className="hidden items-center gap-1.5 xl:flex"><Clock className="h-3.5 w-3.5" />{s.contact.officeHours}</span>}
           </div>
           <div className="flex items-center gap-3"><span className="text-white/60">Follow us:</span><SocialIcons social={s.social} className="h-3.5 w-3.5" /></div>
         </div>

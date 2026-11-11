@@ -5,13 +5,15 @@ import { Seo, Icon } from '../../components/ui';
 import { PageHero } from '../../components/public/PublicLayout';
 import LeadForm from '../../components/LeadForm';
 
+const VALUE_ICONS = ['ShieldCheck', 'Award', 'Globe2', 'Heart', 'CheckCircle2', 'Handshake'];
+
 export function AboutPage() {
   const s = useSettings();
   const a = s.about || {};
   return (
     <>
       <Seo title="About Us" description={a.mission || 'About LN PAK LLC — visa, travel, education and immigration consultancy.'} />
-      <PageHero eyebrow="About LN PAK LLC" title={a.title || 'About LN PAK LLC'} subtitle="Your global journey partner for study, travel, work and pilgrimage." image="/images/hero-landmarks.jpg" />
+      <PageHero eyebrow="About LN PAK LLC" title={a.title || 'About LN PAK LLC'} subtitle="International education and consultancy company, established in 2019." image="/images/hero-landmarks.jpg" />
       <section className="container-x grid gap-12 py-16 lg:grid-cols-[1.3fr_1fr]">
         <div className="prose-body text-lg text-slate-600">{paragraphs(a.body).map((p, i) => <p key={i}>{p}</p>)}</div>
         <div className="space-y-4">
@@ -19,17 +21,25 @@ export function AboutPage() {
           {a.vision && <div className="card flex gap-4 p-6"><Eye className="h-8 w-8 shrink-0 text-gold-600" /><div><h2 className="text-lg">Our Vision</h2><p className="mt-1 text-sm text-slate-600">{a.vision}</p></div></div>}
           <div className="rounded-2xl bg-navy-950 p-6 text-white">
             <img src="/logo.jpg" alt="LN PAK LLC logo" className="mb-4 h-20 rounded-xl bg-white p-1" />
-            <p className="text-sm text-white/80">We give honest advice, prepare complete applications and keep you updated at every step through your private client portal.</p>
+            <p className="text-sm text-white/80">Student recruitment, university admissions, institutional partnerships, tourism and international business facilitation.</p>
           </div>
         </div>
       </section>
-      <section className="bg-navy-50 py-16">
-        <div className="container-x grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {[['ShieldCheck', 'Honest advice', 'We never promise a visa — only a complete, well-prepared application.'], ['Users', 'Personal consultant', 'One consultant who knows your case.'], ['Zap', 'Clear process', 'Fees and steps explained before you start.'], ['Headphones', 'Real support', 'Phone, WhatsApp and portal messaging.']].map(([i, t, d]) => (
-            <div key={t} className="card p-6"><Icon name={i} className="mb-3 h-8 w-8 text-navy-700" /><h3 className="text-base">{t}</h3><p className="mt-1 text-sm text-slate-500">{d}</p></div>
-          ))}
-        </div>
-      </section>
+      {a.values?.length > 0 && (
+        <section className="bg-navy-50 py-16">
+          <div className="container-x">
+            <h2 className="mb-8 text-center text-2xl sm:text-3xl">Core Values</h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {a.values.map((v, i) => (
+                <div key={v} className="card flex items-center gap-4 p-5">
+                  <Icon name={VALUE_ICONS[i % VALUE_ICONS.length]} className="h-8 w-8 shrink-0 text-navy-700" />
+                  <h3 className="text-base">{v}</h3>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
       <div className="pb-24" />
     </>
   );

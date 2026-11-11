@@ -68,7 +68,7 @@ export const Setting = mongoose.model(
         subtitle: String,
         image: String,
       },
-      about: { title: String, body: String, mission: String, vision: String },
+      about: { title: String, body: String, mission: String, vision: String, values: [String] },
       footerAbout: String,
       pages: {
         privacy: String,

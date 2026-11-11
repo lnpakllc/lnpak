@@ -45,7 +45,7 @@ export const LEAD_STATUSES = [
 ];
 
 export const SERVICE_TYPES = [
-  'study_visa', 'visit_visa', 'business_visa', 'work_permit', 'immigration', 'tour_booking',
+  'study_visa', 'visit_visa', 'business_visa', 'work_permit', 'immigration', 'business_setup', 'tour_booking',
   'hajj_umrah', 'religious_tour', 'university_admission', 'medical_university', 'scholarship',
   'documentation', 'general',
 ];

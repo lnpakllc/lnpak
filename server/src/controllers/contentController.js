@@ -18,7 +18,11 @@ export const CONTENT_TYPES = {
     Model: Country,
     sort: { sortOrder: 1, name: 1 },
     search: ['name', 'region'],
-    filters: (q) => ({ ...(q.region && { region: exact(q.region) }), ...(q.visa && { 'visas.type': String(q.visa) }) }),
+    filters: (q) => ({
+      ...(q.region && { region: exact(q.region) }),
+      ...(q.visa && { 'visas.type': String(q.visa) }),
+      ...(q.footer === 'true' && { showInFooter: true }),
+    }),
     listSelect: '-visas.documents -visas.process -faqs',
   },
   tours: {

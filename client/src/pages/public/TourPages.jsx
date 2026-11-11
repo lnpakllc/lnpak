@@ -81,8 +81,8 @@ export function TourDetail() {
         <div className="space-y-10">
           <div className="flex flex-wrap items-end justify-between gap-4 rounded-2xl bg-navy-50 p-5">
             <div>
-              {t.price != null && <p className="text-3xl font-extrabold text-navy-900">{money(t.price, t.currency)}</p>}
-              {t.priceNote && <p className="text-xs text-slate-500">{t.priceNote}</p>}
+              {t.price != null ? <p className="text-3xl font-extrabold text-navy-900">{money(t.price, t.currency)}</p> : <p className="text-lg font-bold text-navy-900">Price on request</p>}
+              <p className="text-xs text-slate-500">{t.price != null ? t.priceNote : 'Send a booking inquiry and our team will share the package price and dates.'}</p>
             </div>
             {t.availability !== 'available' && <span className="rounded-full bg-gold-500 px-3 py-1 text-xs font-bold text-navy-950">{t.availability === 'limited' ? 'Limited seats' : 'Sold out'}</span>}
           </div>

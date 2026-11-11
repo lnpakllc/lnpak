@@ -22,6 +22,7 @@ const SECTIONS = {
   about: { label: 'About page', fields: [
     { name: 'title', label: 'Title', type: 'text' }, { name: 'body', label: 'Body', type: 'textarea', rows: 6, hint: 'Blank line between paragraphs' },
     { name: 'mission', label: 'Mission', type: 'textarea', rows: 2 }, { name: 'vision', label: 'Vision', type: 'textarea', rows: 2 },
+    { name: 'values', label: 'Core values', type: 'list' },
   ] },
   pages: { label: 'Policy pages', fields: [
     { name: 'privacy', label: 'Privacy Policy', type: 'textarea', rows: 8 }, { name: 'terms', label: 'Terms & Conditions', type: 'textarea', rows: 8 }, { name: 'refund', label: 'Refund Policy', type: 'textarea', rows: 8 },
@@ -46,6 +47,7 @@ export default function SettingsPage() {
     try {
       const body = Object.fromEntries(Object.keys(SECTIONS).map((k) => [k, values[k] || {}]));
       body.footerAbout = values.footerAbout;
+      if (Array.isArray(body.about?.values)) body.about = { ...body.about, values: body.about.values.map((v) => v.trim()).filter(Boolean) };
       const r = await api.put('/admin/settings', body);
       qc.setQueryData(['settings'], r.data.data);
       toast('Settings saved — the website is updated');
