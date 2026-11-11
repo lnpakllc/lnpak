@@ -110,7 +110,8 @@ cookies work without any cross-domain setup. LN PAK is a business website, so us
    | `SETUP_KEY` | a long secret, used once on `/admin/setup` |
    | SMTP_* / `MAIL_FROM` / `ADMIN_NOTIFY_EMAIL` | optional, for emails |
 
-4. Storage → **Blob** → create a store and connect it to this project. This adds `BLOB_READ_WRITE_TOKEN`;
+4. Images: add `CLOUDINARY_URL` (Cloudinary → Settings → API Keys → "API environment variable"),
+   **or** Storage → **Blob** → create a store and connect it to this project. This adds `BLOB_READ_WRITE_TOKEN`;
    all images uploaded in the admin panel are then stored there (Vercel's own disk is not permanent).
 5. Deploy, then Settings → Domains → add **`api.lnpak.com`**.
 6. Check `https://api.lnpak.com/api/health` shows `"status":"ok"`.

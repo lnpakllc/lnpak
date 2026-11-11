@@ -55,7 +55,7 @@ export function createApp() {
   if (env.nodeEnv !== 'test') app.use(morgan(env.isProd ? 'combined' : 'dev'));
 
   // Locally stored website images (when Vercel Blob is not used).
-  if (!env.blobToken && !env.isVercel) {
+  if (!env.cloudinaryUrl && !env.blobToken && !env.isVercel) {
     app.use('/uploads/public', express.static(PUBLIC_UPLOAD_DIR, { maxAge: '30d', index: false, dotfiles: 'deny', fallthrough: false }));
   }
 

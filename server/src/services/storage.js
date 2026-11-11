@@ -1,6 +1,7 @@
-// Stores public website images (tour photos, logos, hero image).
-// - Vercel / production with BLOB_READ_WRITE_TOKEN → Vercel Blob (files survive redeploys).
-// - Local development without the token → server/uploads/public on disk.
+// Stores public website images (tour photos, logos, hero image). First match wins:
+// 1. CLOUDINARY_URL set       → Cloudinary (images are auto-compressed and served in the best format).
+// 2. BLOB_READ_WRITE_TOKEN set → Vercel Blob.
+// 3. Local development         → server/uploads/public on disk.
 // Private client documents are NOT stored here; they will use private storage with signed URLs.
 import fs from 'fs/promises';
 import path from 'path';
@@ -27,6 +28,8 @@ export async function savePublicImage(file) {
   }
   const name = `${Date.now()}-${crypto.randomBytes(6).toString('hex')}${IMAGE_TYPES[type]}`;
 
+  if (env.cloudinaryUrl) return saveToCloudinary(file.buffer);
+
   if (env.blobToken) {
     const { put } = await import('@vercel/blob');
     const blob = await put(`website/${name}`, file.buffer, { access: 'public', contentType: type, token: env.blobToken });
@@ -34,11 +37,44 @@ export async function savePublicImage(file) {
   }
 
   if (env.isVercel) {
-    const err = new Error('Image storage is not set up. Connect a Vercel Blob store to this project (it adds BLOB_READ_WRITE_TOKEN).');
+    const err = new Error('Image storage is not set up. Add CLOUDINARY_URL (or connect a Vercel Blob store) in the API project settings and redeploy.');
     err.status = 503;
     throw err;
   }
   await fs.mkdir(PUBLIC_UPLOAD_DIR, { recursive: true });
   await fs.writeFile(path.join(PUBLIC_UPLOAD_DIR, name), file.buffer);
   return { url: `/uploads/public/${name}`, size: file.size };
+}
+
+// ---------- Cloudinary ----------
+let cloudinaryReady = null;
+async function cloudinaryClient() {
+  cloudinaryReady ||= import('cloudinary').then(({ v2 }) => {
+    // The SDK reads CLOUDINARY_URL from the environment; secure = always https links.
+    v2.config({ secure: true });
+    return v2;
+  });
+  return cloudinaryReady;
+}
+
+// f_auto,q_auto: Cloudinary picks the lightest format (WebP/AVIF) and quality for each visitor's browser.
+export const optimizedCloudinaryUrl = (url) => url.replace('/image/upload/', '/image/upload/f_auto,q_auto/');
+
+async function saveToCloudinary(buffer) {
+  const cloudinary = await cloudinaryClient();
+  const result = await new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: 'lnpak/website', resource_type: 'image', overwrite: false, unique_filename: true },
+      (err, res) => {
+        if (err) {
+          const e = new Error(err.http_code === 401 ? 'Cloudinary rejected the API key. Check CLOUDINARY_URL in the API project settings.' : `Image upload failed: ${err.message}`);
+          e.status = err.http_code === 401 ? 503 : 502;
+          return reject(e);
+        }
+        resolve(res);
+      },
+    );
+    stream.end(buffer);
+  });
+  return { url: optimizedCloudinaryUrl(result.secure_url), size: result.bytes };
 }

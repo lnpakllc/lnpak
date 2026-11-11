@@ -34,6 +34,9 @@ export const env = {
   maxUploadMb: Math.min(Number(process.env.MAX_UPLOAD_MB || 4), process.env.VERCEL ? 4 : 50),
   // When set, website images go to Vercel Blob instead of the local disk (required on Vercel).
   blobToken: process.env.BLOB_READ_WRITE_TOKEN,
+  // Cloudinary (preferred for images when set): the "API environment variable" from the Cloudinary dashboard,
+  // e.g. cloudinary://API_KEY:API_SECRET@CLOUD_NAME
+  cloudinaryUrl: process.env.CLOUDINARY_URL,
   smtp: {
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT || 587),
