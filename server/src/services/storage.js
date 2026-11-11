@@ -47,14 +47,26 @@ export async function savePublicImage(file) {
 }
 
 // ---------- Cloudinary ----------
+const setupError = (msg) => Object.assign(new Error(msg), { status: 503 });
+
+// Checks the value has the shape cloudinary://API_KEY:API_SECRET@CLOUD_NAME and no placeholders.
+export function parseCloudinaryUrl(value) {
+  const m = /^cloudinary:\/\/([^:@\s]+):([^@\s]+)@([^/?\s]+)\/?$/.exec(value || '');
+  if (!m) throw setupError('CLOUDINARY_URL is not in the right format. It must look like cloudinary://API_KEY:API_SECRET@CLOUD_NAME (copy "API environment variable" from Cloudinary → Settings → API Keys).');
+  const [, apiKey, apiSecret, cloudName] = m;
+  if ([apiKey, apiSecret, cloudName].some((x) => /[<>*]/.test(x))) {
+    throw setupError('CLOUDINARY_URL still contains a placeholder such as <your_api_secret> or *****. Reveal the real secret in Cloudinary and paste the full value.');
+  }
+  return { cloud_name: cloudName, api_key: apiKey, api_secret: decodeURIComponent(apiSecret) };
+}
+
 let cloudinaryReady = null;
 async function cloudinaryClient() {
-  cloudinaryReady ||= import('cloudinary').then(({ v2 }) => {
-    // The SDK reads CLOUDINARY_URL from the environment; secure = always https links.
-    v2.config({ secure: true });
-    return v2;
-  });
-  return cloudinaryReady;
+  const creds = parseCloudinaryUrl(env.cloudinaryUrl);
+  cloudinaryReady ||= import('cloudinary').then(({ v2 }) => v2).catch((e) => { cloudinaryReady = null; throw e; });
+  const v2 = await cloudinaryReady;
+  v2.config({ ...creds, secure: true }); // secure = always https links
+  return v2;
 }
 
 // f_auto,q_auto: Cloudinary picks the lightest format (WebP/AVIF) and quality for each visitor's browser.
@@ -67,8 +79,9 @@ async function saveToCloudinary(buffer) {
       { folder: 'lnpak/website', resource_type: 'image', overwrite: false, unique_filename: true },
       (err, res) => {
         if (err) {
-          const e = new Error(err.http_code === 401 ? 'Cloudinary rejected the API key. Check CLOUDINARY_URL in the API project settings.' : `Image upload failed: ${err.message}`);
-          e.status = err.http_code === 401 ? 503 : 502;
+          const auth = [401, 403].includes(err.http_code) || /api_key|api_secret|cloud_name|signature/i.test(err.message || '');
+          const e = new Error(auth ? `Cloudinary rejected the credentials (${err.message}). Check CLOUDINARY_URL in the API project settings.` : `Image upload failed: ${err.message}`);
+          e.status = auth ? 503 : 502;
           return reject(e);
         }
         resolve(res);

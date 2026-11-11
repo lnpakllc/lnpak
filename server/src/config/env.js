@@ -14,6 +14,15 @@ if (process.env.NODE_ENV === 'production' && process.env.JWT_SECRET.length < 32)
   throw new Error('JWT_SECRET must be at least 32 characters in production.');
 }
 
+// Accepts the value however it was pasted: with a leading "CLOUDINARY_URL=", spaces or quotes.
+function normalizeCloudinaryUrl(raw) {
+  if (!raw) return undefined;
+  let v = String(raw).trim().replace(/^CLOUDINARY_URL\s*=\s*/i, '').trim().replace(/^["']|["']$/g, '').trim();
+  if (!v) return undefined;
+  process.env.CLOUDINARY_URL = v; // the Cloudinary SDK reads this variable directly
+  return v;
+}
+
 const list = (v, fallback = '') => (v || fallback).split(',').map((s) => s.trim()).filter(Boolean);
 
 export const env = {
@@ -36,7 +45,7 @@ export const env = {
   blobToken: process.env.BLOB_READ_WRITE_TOKEN,
   // Cloudinary (preferred for images when set): the "API environment variable" from the Cloudinary dashboard,
   // e.g. cloudinary://API_KEY:API_SECRET@CLOUD_NAME
-  cloudinaryUrl: process.env.CLOUDINARY_URL,
+  cloudinaryUrl: normalizeCloudinaryUrl(process.env.CLOUDINARY_URL),
   smtp: {
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT || 587),
