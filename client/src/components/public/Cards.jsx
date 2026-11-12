@@ -27,6 +27,7 @@ export function TourCard({ t }) {
     <Link to={`/tours/${t.slug}`} className="card group flex flex-col overflow-hidden transition hover:-translate-y-1 hover:shadow-lift">
       <div className="relative h-44 overflow-hidden">
         <Img src={t.images?.[0]} alt={t.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" fallbackIcon="Plane" />
+        {t.availability === 'on_request' && <Badge className="absolute left-3 top-3 bg-white text-navy-900">Available on request</Badge>}
         {t.availability === 'limited' && <Badge className="absolute left-3 top-3 bg-gold-500 text-navy-950">Limited seats</Badge>}
         {t.availability === 'sold_out' && <Badge className="absolute left-3 top-3 bg-slate-900 text-white">Sold out</Badge>}
       </div>

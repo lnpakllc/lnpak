@@ -102,7 +102,7 @@ export function TourDetail() {
               {t.price != null ? <p className="text-3xl font-extrabold text-navy-900">{money(t.price, t.currency)}</p> : <p className="text-lg font-bold text-navy-900">Price on request</p>}
               <p className="text-xs text-slate-500">{t.price != null ? t.priceNote : 'Send a booking inquiry and our team will share the package price and dates.'}</p>
             </div>
-            {t.availability !== 'available' && <span className="rounded-full bg-gold-500 px-3 py-1 text-xs font-bold text-navy-950">{t.availability === 'limited' ? 'Limited seats' : 'Sold out'}</span>}
+            {t.availability !== 'available' && <span className="rounded-full bg-gold-500 px-3 py-1 text-xs font-bold text-navy-950">{{ limited: 'Limited seats', on_request: 'Available on request' }[t.availability] || 'Sold out'}</span>}
           </div>
           {t.summary && <p className="text-lg text-slate-600">{t.summary}</p>}
           <div className="grid gap-3 sm:grid-cols-2">

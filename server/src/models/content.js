@@ -98,7 +98,7 @@ export const TourPackage = mongoose.model(
     included: [String],
     excluded: [String],
     itinerary: [new Schema({ day: Number, title: String, description: String }, { _id: false })],
-    availability: { type: String, enum: ['available', 'limited', 'sold_out'], default: 'available' },
+    availability: { type: String, enum: ['available', 'on_request', 'limited', 'sold_out'], default: 'available' },
   }),
 );
 

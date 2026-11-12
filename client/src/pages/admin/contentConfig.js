@@ -57,7 +57,7 @@ export const CONTENT = {
   },
   tours: {
     title: 'Tour Packages', singular: 'Tour package', titleField: 'title', publicPath: '/tours',
-    columns: [['title', 'Package'], ['destination', 'Destination', (v) => v || '—'], ['category', 'Category', tourCategoryLabel], ['availability', 'Availability']],
+    columns: [['title', 'Package'], ['destination', 'Destination', (v) => v || '—'], ['category', 'Category', tourCategoryLabel], ['availability', 'Availability', (v) => ({ available: 'Available', on_request: 'Available on Request', limited: 'Limited seats', sold_out: 'Sold out' }[v] || v)]],
     filters: [{ name: 'destination', label: 'Destinations', facet: 'destination' }, { name: 'category', label: 'Category', options: TOUR_CATEGORIES }],
     fields: [
       { name: 'title', label: 'Package name', type: 'text', required: true },
@@ -70,7 +70,7 @@ export const CONTENT = {
       { name: 'currency', label: 'Currency', type: 'select', options: [['USD', 'USD'], ['PKR', 'PKR'], ['SAR', 'SAR'], ['AED', 'AED'], ['GBP', 'GBP'], ['EUR', 'EUR']], default: 'USD', half: true },
       { name: 'priceNote', label: 'Price note', type: 'text', hint: 'e.g. per person, twin sharing' },
       { name: 'departureDates', label: 'Departure dates', type: 'dates' },
-      { name: 'availability', label: 'Availability', type: 'select', options: [['available', 'Available'], ['limited', 'Limited seats'], ['sold_out', 'Sold out']], default: 'available' },
+      { name: 'availability', label: 'Availability', type: 'select', options: [['available', 'Available'], ['on_request', 'Available on Request'], ['limited', 'Limited seats'], ['sold_out', 'Sold out']], default: 'available' },
       { name: 'hotel', label: 'Hotel', type: 'text' },
       { name: 'transport', label: 'Transportation', type: 'text' },
       { name: 'summary', label: 'Summary', type: 'textarea', rows: 3, max: 400 },
