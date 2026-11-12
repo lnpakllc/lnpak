@@ -13,12 +13,21 @@ import NotFound from './NotFound';
 export function ToursPage() {
   const [params, setParams] = useSearchParams();
   const category = params.get('category') || '';
+  const destination = params.get('destination') || '';
   const page = Number(params.get('page') || 1);
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['content', 'tours', category, page],
-    queryFn: () => get('/content/tours', { category, page, limit: 12 }),
+    queryKey: ['content', 'tours', category, destination, page],
+    queryFn: () => get('/content/tours', { category, destination, page, limit: 12 }),
   });
-  const setCat = (c) => setParams(c ? { category: c } : {}, { replace: true });
+  const { data: facets } = useQuery({ queryKey: ['content', 'tours', 'facets'], queryFn: () => getData('/content/tours/facets'), staleTime: 5 * 60 * 1000 });
+  const destinations = facets?.destination || [];
+  const update = (next) => {
+    const n = new URLSearchParams(params);
+    for (const [k, v] of Object.entries(next)) { if (v) n.set(k, v); else n.delete(k); }
+    n.delete('page');
+    setParams(n, { replace: true });
+  };
+  const setCat = (c) => update({ category: c });
   return (
     <>
       <Seo title="Travel & Tourism" description="Family, honeymoon, group, luxury and budget holidays, medical and religious tourism, Umrah, Hajj, business travel and MICE packages from LN PAK LLC." />
@@ -29,6 +38,15 @@ export function ToursPage() {
             <button key={k} onClick={() => setCat(k)} className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${category === k ? 'bg-navy-900 text-white' : 'bg-navy-50 text-navy-900 hover:bg-navy-100'}`}>{l}</button>
           ))}
         </div>
+        {destinations.length > 0 && (
+          <div className="mb-8 flex flex-wrap items-center gap-3">
+            <label htmlFor="tour-destination" className="flex items-center gap-1.5 text-sm font-semibold text-navy-900"><MapPin className="h-4 w-4" /> Destination</label>
+            <select id="tour-destination" value={destination} onChange={(e) => update({ destination: e.target.value })} className="rounded-full border border-navy-100 bg-white px-4 py-2 text-sm font-semibold text-navy-900">
+              <option value="">All Destinations</option>
+              {destinations.map((d) => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </div>
+        )}
         {error ? <ErrorState error={error} onRetry={refetch} /> : isLoading ? (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-72" />)}</div>
         ) : data.data.length ? (
@@ -36,7 +54,7 @@ export function ToursPage() {
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{data.data.map((t) => <TourCard key={t._id} t={t} />)}</div>
             <Pagination meta={data.meta} onPage={(p) => { const n = new URLSearchParams(params); n.set('page', p); setParams(n); }} />
           </>
-        ) : <EmptyState title={`No ${category ? tourCategoryLabel(category) : 'packages'} available right now`} text="New departures are added regularly. Send us an inquiry and we will plan a custom package." />}
+        ) : <EmptyState title={`No ${category ? tourCategoryLabel(category) : 'packages'}${destination ? ` for ${destination}` : ''} available right now`} text="New departures are added regularly. Send us an inquiry and we will plan a custom package." />}
       </section>
       <div className="pb-24" />
     </>

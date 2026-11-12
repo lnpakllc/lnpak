@@ -29,7 +29,10 @@ export const CONTENT_TYPES = {
     Model: TourPackage,
     sort: { sortOrder: 1, createdAt: -1 },
     search: ['title', 'destination', 'category'],
-    filters: (q) => ({ ...(q.category && { category: String(q.category).toLowerCase() }) }),
+    filters: (q) => ({
+      ...(q.category && { category: String(q.category).toLowerCase() }),
+      ...(q.destination && { destination: exact(String(q.destination)) }),
+    }),
     listSelect: '-itinerary -included -excluded',
   },
   universities: {
@@ -109,7 +112,7 @@ export const publicFacets = asyncHandler(async (req, res) => {
   const fields = {
     universities: ['country', 'programs.degree', 'languages'],
     scholarships: ['country', 'degreeLevels', 'fields', 'scholarshipType'],
-    tours: ['category'],
+    tours: ['category', 'destination'],
     countries: ['region'],
     faqs: ['category'],
   }[req.params.type] || [];
