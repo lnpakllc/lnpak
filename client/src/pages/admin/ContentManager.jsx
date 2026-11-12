@@ -57,6 +57,8 @@ export default function ContentManager() {
   const set = (k, v) => { const p = new URLSearchParams(params); if (v) p.set(k, v); else p.delete(k); if (k !== 'page') p.delete('page'); setParams(p, { replace: true }); };
   useEffect(() => { setEditing(null); }, [type]);
 
+  const needsFacets = (cfg?.filters || []).some((f) => f.facet);
+  const { data: facets } = useQuery({ queryKey: ['content-facets', type], queryFn: () => get(`/content/${type}/facets`).then((r) => r.data), enabled: needsFacets, staleTime: 60 * 1000 });
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['admin-content', type, filters],
     queryFn: () => get(`/admin/content/${type}`, { ...filters, limit: 20 }),
@@ -86,7 +88,7 @@ export default function ContentManager() {
       <div className="card mb-4 flex flex-wrap gap-3 p-4">
         <label className="relative min-w-60 flex-1"><Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" /><input className="input pl-9" placeholder="Search…" defaultValue={filters.q} key={type} onKeyDown={(e) => e.key === 'Enter' && set('q', e.target.value)} onBlur={(e) => e.target.value !== (filters.q || '') && set('q', e.target.value)} /></label>
         <select className="input w-44" value={filters.published || ''} onChange={(e) => set('published', e.target.value)}><option value="">All</option><option value="true">Published</option><option value="false">Hidden</option></select>
-        {(cfg.filters || []).map((fl) => <select key={fl.name} className="input w-48" value={filters[fl.name] || ''} onChange={(e) => set(fl.name, e.target.value)}><option value="">All {fl.label.toLowerCase()}</option>{fl.options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>)}
+        {(cfg.filters || []).map((fl) => { const opts = fl.facet ? (facets?.[fl.facet] || []).map((x) => [x, x]) : fl.options; return <select key={fl.name} className="input w-48" value={filters[fl.name] || ''} onChange={(e) => set(fl.name, e.target.value)}><option value="">All {fl.label.toLowerCase()}</option>{opts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>; })}
       </div>
       {error ? <ErrorState error={error} onRetry={refetch} /> : isLoading ? <Skeleton className="h-80" /> : data.data.length === 0 ? (
         <EmptyState title={`No ${cfg.title.toLowerCase()} yet`} action={<button className="btn-primary btn-sm" onClick={() => setEditing({})}><Plus className="h-4 w-4" />Add the first one</button>} />

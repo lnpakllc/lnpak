@@ -33,6 +33,7 @@ export const CONTENT_TYPES = {
       ...(q.category && { category: String(q.category).toLowerCase() }),
       ...(q.destination && { destination: exact(String(q.destination)) }),
     }),
+    adminSort: { destination: 1, sortOrder: 1, title: 1 }, // admin list is grouped destination by destination
     listSelect: '-itinerary -included -excluded',
   },
   universities: {
@@ -147,7 +148,7 @@ export const adminList = asyncHandler(async (req, res) => {
   if (req.query.published === 'true') filter.isPublished = true;
   if (req.query.published === 'false') filter.isPublished = false;
   const [items, total] = await Promise.all([
-    cfg.Model.find(filter).sort({ updatedAt: -1 }).skip(paging.skip).limit(paging.limit).lean(),
+    cfg.Model.find(filter).sort(cfg.adminSort || { updatedAt: -1 }).skip(paging.skip).limit(paging.limit).lean(),
     cfg.Model.countDocuments(filter),
   ]);
   ok(res, items, pageMeta(total, paging));

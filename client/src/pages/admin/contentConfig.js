@@ -57,8 +57,8 @@ export const CONTENT = {
   },
   tours: {
     title: 'Tour Packages', singular: 'Tour package', titleField: 'title', publicPath: '/tours',
-    columns: [['title', 'Package'], ['category', 'Category', tourCategoryLabel], ['price', 'Price', (v, r) => money(v, r.currency)], ['availability', 'Availability']],
-    filters: [{ name: 'category', label: 'Category', options: TOUR_CATEGORIES }],
+    columns: [['title', 'Package'], ['destination', 'Destination', (v) => v || '—'], ['category', 'Category', tourCategoryLabel], ['availability', 'Availability']],
+    filters: [{ name: 'destination', label: 'Destinations', facet: 'destination' }, { name: 'category', label: 'Category', options: TOUR_CATEGORIES }],
     fields: [
       { name: 'title', label: 'Package name', type: 'text', required: true },
       { name: 'category', label: 'Category', type: 'select', options: TOUR_CATEGORIES },
