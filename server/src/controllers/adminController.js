@@ -7,7 +7,7 @@ import { Notification, Setting, NewsletterSubscriber, AuditLog } from '../models
 import { PERMISSIONS } from '../config/permissions.js';
 import { invalidateRoleCache } from '../middleware/auth.js';
 import { audit } from '../middleware/common.js';
-import { savePublicImage } from '../services/storage.js';
+import { savePublicImage, storageStatus } from '../services/storage.js';
 import { ApiError, asyncHandler, ok, created, getPaging, pageMeta, escapeRegex } from '../utils/http.js';
 
 const pw = z.string().min(8, 'Password must be at least 8 characters').max(100).regex(/[A-Za-z]/, 'Password needs a letter').regex(/[0-9]/, 'Password needs a number');
@@ -210,6 +210,8 @@ export const uploadImages = asyncHandler(async (req, res) => {
   await audit(req, 'upload.image', 'Upload', null, { files: saved.map((x) => x.url) });
   created(res, saved);
 });
+
+export const uploadStatus = asyncHandler(async (_req, res) => ok(res, await storageStatus()));
 
 // ---------- audit ----------
 export const listAudit = asyncHandler(async (req, res) => {

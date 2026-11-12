@@ -67,6 +67,7 @@ r.post('/admin/content/:type', can('content:manage'), content.adminCreate);
 r.get('/admin/content/:type/:id', can('content:manage'), content.adminGet);
 r.patch('/admin/content/:type/:id', can('content:manage'), content.adminUpdate);
 r.delete('/admin/content/:type/:id', can('content:manage'), content.adminDelete);
+r.get('/admin/uploads/status', can('content:manage', 'settings:manage'), admin.uploadStatus);
 r.post('/admin/uploads/images', can('content:manage', 'settings:manage'), imageUpload.array('images', 10), admin.uploadImages);
 
 // ---------- admin: staff, roles, settings, newsletter, notifications, audit ----------

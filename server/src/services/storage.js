@@ -91,3 +91,25 @@ async function saveToCloudinary(buffer) {
   });
   return { url: optimizedCloudinaryUrl(result.secure_url), size: result.bytes };
 }
+
+// Read-only check used by the admin "storage status" link. Never returns secrets.
+export async function storageStatus() {
+  if (env.cloudinaryUrl) {
+    const out = { provider: 'cloudinary', folder: 'lnpak/website' };
+    try {
+      const creds = parseCloudinaryUrl(env.cloudinaryUrl);
+      out.cloudName = creds.cloud_name;
+      out.apiKeyEndsWith = creds.api_key.slice(-4);
+      const cloudinary = await cloudinaryClient();
+      await cloudinary.api.ping();
+      return { ...out, ok: true, message: 'Cloudinary is connected. Image uploads will be stored there.' };
+    } catch (e) {
+      const msg = e.error?.message || e.message || String(e);
+      const fromCloudinary = e.status !== 503; // 503 = our own setup check, already a clear message
+      return { ...out, ok: false, message: fromCloudinary && /api_key|api_secret|signature|401|403|unknown api key|invalid/i.test(msg) ? `Cloudinary rejected the credentials: ${msg}` : msg };
+    }
+  }
+  if (env.blobToken) return { provider: 'vercel-blob', ok: true, message: 'Vercel Blob is configured. Image uploads will be stored there.' };
+  if (env.isVercel) return { provider: 'none', ok: false, message: 'No image storage configured. Add CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET to the API project and redeploy.' };
+  return { provider: 'local-disk', ok: true, message: 'Images are saved on this server (local development).' };
+}
