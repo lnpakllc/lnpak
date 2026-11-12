@@ -97,7 +97,7 @@ export default function Home() {
             <div className="absolute inset-0 bg-gradient-to-t from-navy-950/85 via-navy-950/20 to-transparent" />
             <div className="absolute inset-x-0 bottom-0 p-6 text-white">
               <p className="eyebrow mb-1 text-gold-500">Popular Packages</p>
-              <h2 className="text-3xl text-white">Tour Packages</h2>
+              <h2 className="text-3xl text-white">Explore Our Packages</h2>
               <p className="mt-1 text-sm text-white/80">Discover the world with our curated travel packages.</p>
               <Link to="/tours" className="btn-gold mt-4">View All Packages <ArrowRight className="h-4 w-4" /></Link>
             </div>

@@ -17,7 +17,7 @@ export const NAV = [
     ],
   },
   { to: '/destinations', label: 'Visa Destinations' },
-  { to: '/tours', label: 'Tour Packages' },
+  { to: '/tours', label: 'Travel & Tourism' },
   {
     label: 'Education', to: '/education',
     children: [['/education', 'Study Abroad'], ['/universities', 'Universities'], ['/universities?medical=true', 'Medical University Finder'], ['/scholarships', 'Scholarships']],

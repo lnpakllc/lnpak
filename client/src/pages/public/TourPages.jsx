@@ -21,8 +21,8 @@ export function ToursPage() {
   const setCat = (c) => setParams(c ? { category: c } : {}, { replace: true });
   return (
     <>
-      <Seo title="Tour Packages" description="Family, honeymoon, group, luxury and budget holidays, medical and religious tourism, Umrah, Hajj, business travel and MICE packages from LN PAK LLC." />
-      <PageHero eyebrow="Popular Packages" title="Tour Packages" subtitle="Curated holidays and spiritual journeys — hotels, transport and guided tours arranged for you." image="/images/tour-banner.jpg" />
+      <Seo title="Travel & Tourism" description="Family, honeymoon, group, luxury and budget holidays, medical and religious tourism, Umrah, Hajj, business travel and MICE packages from LN PAK LLC." />
+      <PageHero eyebrow="Travel & Tourism" title="Explore Our Packages" subtitle="Curated holidays and spiritual journeys — hotels, transport and guided tours arranged for you." image="/images/tour-banner.jpg" />
       <section className="container-x py-12">
         <div className="mb-8 flex gap-2 overflow-x-auto pb-2" role="tablist">
           {[['', 'All Packages'], ...TOUR_CATEGORIES].map(([k, l]) => (
