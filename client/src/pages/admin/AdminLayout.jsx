@@ -2,7 +2,7 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  LayoutDashboard, Users, UserCheck, Briefcase, Globe2, Plane, GraduationCap, Award, MessageSquareQuote, HelpCircle, Mail,
+  LayoutDashboard, Users, UserCheck, Briefcase, Globe2, Plane, GraduationCap, Award, MessageSquareQuote, HelpCircle, Video, Mail,
   UserCog, ShieldCheck, Settings, ScrollText, Bell, Search, Menu, ChevronsLeft, LogOut, UserCircle2, ExternalLink, ChevronRight,
 } from 'lucide-react';
 import { api, get } from '../../lib/api';
@@ -22,6 +22,7 @@ const MENU = [
     ['/admin/content/tours', 'Tour Packages', Plane, 'content:manage'],
     ['/admin/content/universities', 'Universities', GraduationCap, 'content:manage'],
     ['/admin/content/scholarships', 'Scholarships', Award, 'content:manage'],
+    ['/admin/content/videos', 'Videos & Reels', Video, 'content:manage'],
     ['/admin/content/testimonials', 'Testimonials', MessageSquareQuote, 'content:manage'],
     ['/admin/content/faqs', 'FAQs', HelpCircle, 'content:manage'],
     ['/admin/newsletter', 'Newsletter', Mail, 'newsletter:manage'],

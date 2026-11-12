@@ -7,6 +7,7 @@ import { useConsult } from '../../context/ConsultContext';
 import { Seo, SectionHeading, Icon, Img, Skeleton } from '../../components/ui';
 import { ServiceCard, TourCard, CountryCard } from '../../components/public/Cards';
 import LeadForm from '../../components/LeadForm';
+import { VideoCard, VideoModal, useVideoPlayer } from '../../components/public/VideoPlayer';
 
 const useContent = (type, params) =>
   useQuery({ queryKey: ['content', type, params], queryFn: () => getData(`/content/${type}`, params), staleTime: 5 * 60 * 1000 });
@@ -39,6 +40,8 @@ export default function Home() {
   const countries = useContent('countries', { featured: 'true', limit: 8 });
   const testimonials = useContent('testimonials', { limit: 3 });
   const faqs = useContent('faqs', { limit: 6 });
+  const videos = useContent('videos', { featured: 'true', limit: 3 });
+  const player = useVideoPlayer();
   const hero = s.hero || {};
 
   return (
@@ -177,6 +180,18 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* ---------- VIDEOS ---------- */}
+      {(videos.data || []).length > 0 && (
+        <section className="py-20">
+          <div className="container-x">
+            <SectionHeading title="Watch Our Videos" subtitle="Visa guidance, study abroad and travel — straight from our YouTube channel" />
+            <div className="grid gap-5 md:grid-cols-3">{videos.data.map((v) => <VideoCard key={v._id} v={v} onPlay={player.play} />)}</div>
+            <div className="mt-8 text-center"><Link to="/videos" className="btn-outline">View all videos <ArrowRight className="h-4 w-4" /></Link></div>
+          </div>
+          <VideoModal video={player.video} onClose={player.close} />
+        </section>
+      )}
 
       {/* ---------- TESTIMONIALS ---------- */}
       {(testimonials.data || []).length > 0 && (

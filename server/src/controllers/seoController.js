@@ -5,7 +5,7 @@ import { asyncHandler } from '../utils/http.js';
 // XML sitemap of every public, indexable page. Admin and client pages are never listed.
 export const sitemap = asyncHandler(async (_req, res) => {
   const site = process.env.PUBLIC_SITE_URL || env.clientUrls[0];
-  const staticPaths = ['/', '/services', '/destinations', '/tours', '/education', '/universities', '/scholarships', '/about', '/contact', '/privacy-policy', '/terms', '/refund-policy'];
+  const staticPaths = ['/', '/services', '/destinations', '/tours', '/videos', '/education', '/universities', '/scholarships', '/about', '/contact', '/privacy-policy', '/terms', '/refund-policy'];
   const groups = [
     ['/services', Service], ['/destinations', Country], ['/tours', TourPackage], ['/universities', University], ['/scholarships', Scholarship],
   ];

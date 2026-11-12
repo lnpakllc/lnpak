@@ -23,7 +23,10 @@ export const NAV = [
     label: 'Education', to: '/education',
     children: [['/education', 'Study Abroad'], ['/universities', 'Universities'], ['/universities?medical=true', 'Medical University Finder'], ['/scholarships', 'Scholarships']],
   },
-  { to: '/about', label: 'About Us' },
+  {
+    label: 'About Us', to: '/about',
+    children: [['/about', 'About LN PAK'], ['/videos', 'Videos & Reels'], ['/contact', 'Contact Us']],
+  },
   { to: '/contact', label: 'Contact Us' },
 ];
 

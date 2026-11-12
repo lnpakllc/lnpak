@@ -1,7 +1,7 @@
 // Generic CMS controller: one implementation serves services, countries, tours, universities,
 // scholarships, testimonials and FAQs. Public routes only ever see published records.
 import mongoose from 'mongoose';
-import { Service, Country, TourPackage, University, Scholarship, Testimonial, Faq } from '../models/content.js';
+import { Service, Country, TourPackage, University, Scholarship, Testimonial, Faq, Video } from '../models/content.js';
 import { audit } from '../middleware/common.js';
 import { ApiError, asyncHandler, ok, created, getPaging, pageMeta, escapeRegex } from '../utils/http.js';
 
@@ -70,6 +70,13 @@ export const CONTENT_TYPES = {
       return f;
     },
     listSelect: '-procedure -documents',
+  },
+  videos: {
+    Model: Video,
+    sort: { sortOrder: 1, createdAt: -1 },
+    search: ['title', 'description'],
+    filters: (q) => ({ ...(['video', 'reel'].includes(q.kind) && { kind: q.kind }) }),
+    listSelect: 'title youtubeId kind description isFeatured sortOrder createdAt',
   },
   testimonials: { Model: Testimonial, sort: { sortOrder: 1, createdAt: -1 }, search: ['name', 'quote'] },
   faqs: {

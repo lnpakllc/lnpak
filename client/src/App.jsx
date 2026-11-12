@@ -10,6 +10,7 @@ const ServicesPages = () => import('./pages/public/ServicesPages');
 const DestinationPages = () => import('./pages/public/DestinationPages');
 const TourPages = () => import('./pages/public/TourPages');
 const FinderPages = () => import('./pages/public/FinderPages');
+const VideoPages = () => import('./pages/public/VideoPages');
 const StaticPages = () => import('./pages/public/StaticPages');
 const pick = (loader, name) => lazy(() => loader().then((m) => ({ default: m[name] })));
 
@@ -24,6 +25,7 @@ const UniversitiesPage = pick(FinderPages, 'UniversitiesPage');
 const UniversityDetail = pick(FinderPages, 'UniversityDetail');
 const ScholarshipsPage = pick(FinderPages, 'ScholarshipsPage');
 const ScholarshipDetail = pick(FinderPages, 'ScholarshipDetail');
+const VideosPage = pick(VideoPages, 'VideosPage');
 const AboutPage = pick(StaticPages, 'AboutPage');
 const ContactPage = pick(StaticPages, 'ContactPage');
 const PolicyPage = pick(StaticPages, 'PolicyPage');
@@ -51,6 +53,7 @@ export default function App() {
           <Route path="universities/:slug" element={<UniversityDetail />} />
           <Route path="scholarships" element={<ScholarshipsPage />} />
           <Route path="scholarships/:slug" element={<ScholarshipDetail />} />
+          <Route path="videos" element={<VideosPage />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="contact" element={<ContactPage />} />
           <Route path="privacy-policy" element={<PolicyPage page="privacy" />} />

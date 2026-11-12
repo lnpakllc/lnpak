@@ -75,7 +75,7 @@ export default function Footer() {
           <div>
             <p className={head}>Quick Links</p>
             <ul className="space-y-2">
-              {[['/', 'Home'], ['/services', 'Services'], ['/tours', 'Travel & Tourism'], ['/education', 'Education'], ['/universities', 'Universities'], ['/scholarships', 'Scholarships'], ['/about', 'About Us'], ['/contact', 'Contact Us']].map(([to, l]) => <li key={to}><Link className={link} to={to}>{l}</Link></li>)}
+              {[['/', 'Home'], ['/services', 'Services'], ['/tours', 'Travel & Tourism'], ['/education', 'Education'], ['/universities', 'Universities'], ['/scholarships', 'Scholarships'], ['/videos', 'Videos'], ['/about', 'About Us'], ['/contact', 'Contact Us']].map(([to, l]) => <li key={to}><Link className={link} to={to}>{l}</Link></li>)}
             </ul>
           </div>
           <div>

@@ -128,6 +128,20 @@ export const CONTENT = {
       ...publish, seo,
     ],
   },
+  videos: {
+    title: 'Videos & Reels', singular: 'Video', titleField: 'title', publicPath: '/videos',
+    columns: [['title', 'Title'], ['kind', 'Type', (v) => (v === 'reel' ? 'Reel' : 'Video')], ['url', 'YouTube link']],
+    filters: [{ name: 'kind', label: 'Type', options: [['video', 'Videos'], ['reel', 'Reels']] }],
+    fields: [
+      { name: 'title', label: 'Title', type: 'text', required: true },
+      { name: 'url', label: 'YouTube link', type: 'text', required: true, hint: 'Paste the normal link, e.g. https://www.youtube.com/watch?v=… or a Shorts link (youtube.com/shorts/…)' },
+      { name: 'kind', label: 'Type', type: 'select', options: [['video', 'Video (landscape)'], ['reel', 'Reel / Short (vertical)']], default: 'video', hint: 'Shorts links are detected automatically' },
+      { name: 'description', label: 'Short description (optional)', type: 'textarea', rows: 2, max: 400 },
+      { name: 'isPublished', label: 'Published (visible on website)', type: 'checkbox', default: true },
+      { name: 'isFeatured', label: 'Show on homepage', type: 'checkbox' },
+      { name: 'sortOrder', label: 'Sort order', type: 'number', default: 0, hint: 'Lower numbers show first' },
+    ],
+  },
   testimonials: {
     title: 'Testimonials', singular: 'Testimonial', titleField: 'name',
     columns: [['name', 'Client'], ['service', 'Service'], ['rating', 'Rating']],

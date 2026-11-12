@@ -188,3 +188,45 @@ export const Faq = mongoose.model(
     category: { type: String, default: 'General', index: true },
   }),
 );
+
+// YouTube videos and reels shown on the website's Videos page. Staff paste a normal YouTube link.
+export function parseYouTube(input) {
+  const v = String(input || '').trim();
+  if (/^[\w-]{11}$/.test(v)) return { id: v, short: false };
+  try {
+    const u = new URL(/^https?:\/\//i.test(v) ? v : `https://${v}`);
+    const host = u.hostname.replace(/^(www|m|music)\./, '');
+    let id = null;
+    let short = false;
+    if (host === 'youtu.be') id = u.pathname.split('/')[1];
+    else if (host === 'youtube.com' || host === 'youtube-nocookie.com') {
+      const [, kind, second] = u.pathname.split('/');
+      if (kind === 'watch') id = u.searchParams.get('v');
+      else if (['shorts', 'embed', 'live', 'v'].includes(kind)) { id = second; short = kind === 'shorts'; }
+    }
+    return /^[\w-]{11}$/.test(id || '') ? { id, short } : null;
+  } catch { return null; }
+}
+
+export const Video = mongoose.model(
+  'Video',
+  withCommon(
+    {
+      title: { type: String, required: true, trim: true, maxlength: 160 },
+      url: {
+        type: String, required: [true, 'Paste a YouTube video or Shorts link'], trim: true, maxlength: 300,
+        set(value) {
+          const p = parseYouTube(value);
+          this.youtubeId = p?.id;
+          if (p?.short) this.kind = 'reel';
+          return value;
+        },
+        validate: { validator() { return !!this.youtubeId; }, message: 'This is not a valid YouTube link' },
+      },
+      youtubeId: { type: String, index: true },
+      kind: { type: String, enum: ['video', 'reel'], default: 'video', index: true },
+      description: { type: String, maxlength: 400 },
+    },
+    'youtubeId', // slug comes from the video id, so two videos can share a title
+  ),
+);
