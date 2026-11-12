@@ -52,9 +52,17 @@ const MIGRATIONS = [
       }
     },
   },
+  {
+    id: '2026-11-12-tour-categories',
+    async up() {
+      // Old country-based categories → the new package types (destination stays on each package).
+      const map = { turkey: 'family', dubai: 'family', malaysia: 'family', europe: 'family', saudi: 'religious', spiritual: 'religious' };
+      for (const [from, to] of Object.entries(map)) await TourPackage.updateMany({ category: from }, { $set: { category: to } });
+    },
+  },
 ];
 
-const Migration = mongoose.models.Migration
+const Migration =mongoose.models.Migration
   || mongoose.model('Migration', new mongoose.Schema({ _id: String, status: String, finishedAt: Date }, { timestamps: true }));
 
 export async function runMigrations() {

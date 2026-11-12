@@ -21,7 +21,7 @@ export function ToursPage() {
   const setCat = (c) => setParams(c ? { category: c } : {}, { replace: true });
   return (
     <>
-      <Seo title="Tour Packages" description="Turkey, Dubai, Malaysia, Europe, family and honeymoon holidays, Umrah and Hajj packages from LN PAK LLC." />
+      <Seo title="Tour Packages" description="Family, honeymoon, group, luxury and budget holidays, medical and religious tourism, Umrah, Hajj, business travel and MICE packages from LN PAK LLC." />
       <PageHero eyebrow="Popular Packages" title="Tour Packages" subtitle="Curated holidays and spiritual journeys — hotels, transport and guided tours arranged for you." image="/images/tour-banner.jpg" />
       <section className="container-x py-12">
         <div className="mb-8 flex gap-2 overflow-x-auto pb-2" role="tablist">

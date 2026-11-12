@@ -38,11 +38,15 @@ export const PRIORITIES = [
 export const DESTINATIONS = ['United Kingdom', 'United States', 'Russia', 'Uzbekistan', 'Kyrgyzstan', 'Tajikistan', 'Germany', 'France', 'Italy', 'Turkey', 'Canada', 'Australia', 'United Arab Emirates', 'Saudi Arabia', 'Malaysia', 'China', 'Other'];
 
 export const TOUR_CATEGORIES = [
-  ['turkey', 'Turkey Tours'], ['dubai', 'Dubai Tours'], ['malaysia', 'Malaysia Tours'], ['saudi', 'Saudi Arabia Tours'],
-  ['umrah', 'Umrah Packages'], ['hajj', 'Hajj Packages'], ['europe', 'Europe Tours'], ['family', 'Family Holidays'],
-  ['honeymoon', 'Honeymoon Packages'], ['spiritual', 'Spiritual Tours'],
+  ['family', 'Family Holiday Packages'], ['honeymoon', 'Honeymoon Packages'], ['group', 'Group Tour Packages'],
+  ['private', 'Individual / Private Tours'], ['luxury', 'Luxury Holiday Packages'], ['budget', 'Budget Tour Packages'],
+  ['medical', 'Medical Tourism'], ['religious', 'Religious & Spiritual Tourism'], ['umrah', 'Umrah Packages'],
+  ['hajj', 'Hajj Packages'], ['business', 'Business & Corporate Travel'],
+  ['mice', 'MICE Tourism (Meetings, Incentives, Conferences & Exhibitions)'],
 ];
-export const tourCategoryLabel = (v) => TOUR_CATEGORIES.find(([k]) => k === v)?.[1] || v;
+// Older categories still resolve to a readable label if any package keeps one.
+const LEGACY_TOUR_CATEGORIES = { turkey: 'Turkey Tours', dubai: 'Dubai Tours', malaysia: 'Malaysia Tours', saudi: 'Saudi Arabia Tours', europe: 'Europe Tours', spiritual: 'Spiritual Tours' };
+export const tourCategoryLabel = (v) => TOUR_CATEGORIES.find(([k]) => k === v)?.[1] || LEGACY_TOUR_CATEGORIES[v] || v;
 
 export const FUNDING = [
   { value: 'fully_funded', label: 'Fully Funded' },

@@ -66,9 +66,9 @@ const tour = (title, category, destination, img, d, n, extra = {}) => ({
   isFeatured: true, ...extra,
 });
 const tours = [
-  tour('Turkey Tour', 'turkey', 'Istanbul & Cappadocia', '/images/tour-0.jpg', 7, 6),
-  tour('Dubai Tour', 'dubai', 'Dubai', '/images/tour-1.jpg', 5, 4),
-  tour('Malaysia Tour', 'malaysia', 'Kuala Lumpur & Langkawi', '/images/tour-2.jpg', 6, 5),
+  tour('Turkey Tour', 'family', 'Istanbul & Cappadocia', '/images/tour-0.jpg', 7, 6),
+  tour('Dubai Tour', 'family', 'Dubai', '/images/tour-1.jpg', 5, 4),
+  tour('Malaysia Tour', 'honeymoon', 'Kuala Lumpur & Langkawi', '/images/tour-2.jpg', 6, 5),
   tour('Saudi Umrah Package', 'umrah', 'Makkah & Madinah', '/images/tour-3.jpg', 14, 13, { hotel: 'Hotels near Haram (sample)' }),
 ];
 

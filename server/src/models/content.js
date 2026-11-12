@@ -83,7 +83,7 @@ export const TourPackage = mongoose.model(
   'TourPackage',
   withCommon({
     title: { type: String, required: true, trim: true, maxlength: 140 },
-    category: { type: String, index: true }, // turkey, dubai, umrah, hajj, europe, family, honeymoon, spiritual ...
+    category: { type: String, index: true }, // family, honeymoon, group, private, luxury, budget, medical, religious, umrah, hajj, business, mice
     destination: String,
     images: [String],
     durationDays: Number,
