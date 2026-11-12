@@ -1,6 +1,6 @@
 import { Mail, Phone, MapPin, Clock, MessageCircle, Target, Eye } from 'lucide-react';
 import { useSettings } from '../../hooks/useSettings';
-import { paragraphs, whatsappLink } from '../../lib/constants';
+import { paragraphs, whatsappLink, getOffices } from '../../lib/constants';
 import { Seo, Icon } from '../../components/ui';
 import { PageHero } from '../../components/public/PublicLayout';
 import LeadForm from '../../components/LeadForm';
@@ -48,11 +48,11 @@ export function AboutPage() {
 export function ContactPage() {
   const s = useSettings();
   const c = s.contact || {};
+  const offices = getOffices(c);
   const items = [
     [Phone, 'Call us', c.phone, c.phone && `tel:${c.phone.replace(/\s/g, '')}`],
     [MessageCircle, 'WhatsApp', c.whatsapp && ((c.phone || '').replace(/\D/g, '') === c.whatsapp ? c.phone : `+${c.whatsapp}`), c.whatsapp && whatsappLink(c.whatsapp)],
     [Mail, 'Email', c.email, c.email && `mailto:${c.email}`],
-    [MapPin, 'Office', c.address, c.mapUrl],
     [Clock, 'Office hours', c.officeHours],
   ].filter(([, , v]) => v);
   return (
@@ -65,6 +65,26 @@ export function ContactPage() {
             const body = <><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-navy-50 text-navy-900"><I className="h-5 w-5" /></span><span><span className="block text-xs text-slate-500">{l}</span><span className="font-semibold text-navy-900">{v}</span></span></>;
             return href ? <a key={l} href={href} target={href.startsWith('http') ? '_blank' : undefined} rel="noreferrer" className="card flex items-center gap-4 p-4 transition hover:shadow-lift">{body}</a> : <div key={l} className="card flex items-center gap-4 p-4">{body}</div>;
           })}
+          {offices.length > 0 && (
+            <div className="pt-3">
+              <h2 className="mb-3 text-lg">{offices.length > 1 ? 'Our Offices' : 'Our Office'}</h2>
+              <div className="space-y-3">
+                {offices.map((o, i) => (
+                  <div key={i} className="card p-4">
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-navy-50 text-navy-900"><MapPin className="h-5 w-5" /></span>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-navy-900">{o.name || `Office ${i + 1}`}</p>
+                        {o.address && <p className="mt-0.5 text-sm text-slate-600">{o.address}</p>}
+                        {o.phone && <a href={`tel:${o.phone.replace(/\s/g, '')}`} className="mt-0.5 block text-sm text-slate-600 hover:text-navy-900">{o.phone}</a>}
+                        {o.mapUrl && <a href={o.mapUrl} target="_blank" rel="noreferrer" className="mt-1.5 inline-block text-sm font-semibold text-navy-900 underline underline-offset-2">View on map</a>}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         <div className="card p-6 sm:p-8">
           <h2 className="text-xl">Send us a message</h2>

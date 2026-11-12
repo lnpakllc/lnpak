@@ -60,6 +60,8 @@ export const Setting = mongoose.model(
         address: String,
         mapUrl: String,
         officeHours: String,
+        // Head office is first. `address`/`mapUrl` above mirror it for older code.
+        offices: [{ _id: false, name: { type: String, maxlength: 80 }, address: { type: String, maxlength: 300 }, phone: { type: String, maxlength: 40 }, mapUrl: { type: String, maxlength: 500 } }],
       },
       social: { facebook: String, instagram: String, linkedin: String, youtube: String, tiktok: String },
       hero: {

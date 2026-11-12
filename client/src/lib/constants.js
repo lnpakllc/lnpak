@@ -37,6 +37,13 @@ export const PRIORITIES = [
 
 export const DESTINATIONS = ['United Kingdom', 'United States', 'Russia', 'Uzbekistan', 'Kyrgyzstan', 'Tajikistan', 'Germany', 'France', 'Italy', 'Turkey', 'Canada', 'Australia', 'United Arab Emirates', 'Saudi Arabia', 'Malaysia', 'China', 'Other'];
 
+// All office locations (head office first). Falls back to the single legacy address.
+export const getOffices = (contact) => {
+  const list = (contact?.offices || []).filter((o) => o?.address || o?.name);
+  if (list.length) return list;
+  return contact?.address ? [{ name: 'Head Office', address: contact.address, mapUrl: contact.mapUrl }] : [];
+};
+
 export const TOUR_CATEGORIES = [
   ['family', 'Family Holiday Packages'], ['honeymoon', 'Honeymoon Packages'], ['group', 'Group Tour Packages'],
   ['private', 'Individual / Private Tours'], ['luxury', 'Luxury Holiday Packages'], ['budget', 'Budget Tour Packages'],

@@ -123,7 +123,7 @@ const faqs = [
 
 const settings = {
   key: 'site',
-  contact: { email: CONTACT_EMAIL, phone: '+7 962 359-59-40', whatsapp: '79623595940', address: 'Izhevsk, Russia', officeHours: OFFICE_HOURS },
+  contact: { email: CONTACT_EMAIL, phone: '+7 962 359-59-40', whatsapp: '79623595940', address: 'Izhevsk, Russia', offices: [{ name: 'Head Office', address: 'Izhevsk, Russia' }], officeHours: OFFICE_HOURS },
   social: { facebook: 'https://facebook.com/', instagram: 'https://instagram.com/', linkedin: 'https://linkedin.com/', youtube: 'https://youtube.com/' },
   hero: {
     eyebrow: 'Dream • Plan • Travel • Study • Settle',

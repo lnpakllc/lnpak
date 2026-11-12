@@ -60,9 +60,20 @@ const MIGRATIONS = [
       for (const [from, to] of Object.entries(map)) await TourPackage.updateMany({ category: from }, { $set: { category: to } });
     },
   },
+  {
+    id: '2026-11-12-multiple-offices',
+    async up() {
+      // The existing single address becomes the first (head) office; staff add the others in Admin → Site Settings.
+      const site = await Setting.findOne({ key: 'site' });
+      if (site && !(site.contact?.offices || []).length && site.contact?.address) {
+        site.set('contact.offices', [{ name: 'Head Office', address: site.contact.address, mapUrl: site.contact.mapUrl || undefined }]);
+        await site.save();
+      }
+    },
+  },
 ];
 
-const Migration =mongoose.models.Migration
+const Migration = mongoose.models.Migration
   || mongoose.model('Migration', new mongoose.Schema({ _id: String, status: String, finishedAt: Date }, { timestamps: true }));
 
 export async function runMigrations() {

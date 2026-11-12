@@ -6,6 +6,7 @@ import { api, getData } from '../../lib/api';
 import { useSettings } from '../../hooks/useSettings';
 import SocialIcons from './SocialIcons';
 import { Spinner } from '../ui';
+import { getOffices } from '../../lib/constants';
 
 export function Newsletter() {
   const [email, setEmail] = useState('');
@@ -90,7 +91,9 @@ export default function Footer() {
             <ul className="space-y-3 text-sm text-white/75">
               {s.contact?.phone && <li><a className="flex gap-3 hover:text-gold-500" href={`tel:${s.contact.phone.replace(/\s/g, '')}`}><Phone className="h-4 w-4 shrink-0 text-gold-500" />{s.contact.phone}</a></li>}
               {s.contact?.email && <li><a className="flex gap-3 hover:text-gold-500" href={`mailto:${s.contact.email}`}><Mail className="h-4 w-4 shrink-0 text-gold-500" />{s.contact.email}</a></li>}
-              {s.contact?.address && <li className="flex gap-3"><MapPin className="h-4 w-4 shrink-0 text-gold-500" />{s.contact.address}</li>}
+              {getOffices(s.contact).map((o, i) => (
+                <li key={i} className="flex gap-3"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gold-500" /><span>{o.name && <span className="block font-semibold text-white/90">{o.name}</span>}{o.address}</span></li>
+              ))}
               {s.contact?.officeHours && <li className="flex gap-3"><Clock className="h-4 w-4 shrink-0 text-gold-500" />{s.contact.officeHours}</li>}
             </ul>
           </div>

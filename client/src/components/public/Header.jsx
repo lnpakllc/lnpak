@@ -5,6 +5,7 @@ import { useSettings } from '../../hooks/useSettings';
 import { useConsult } from '../../context/ConsultContext';
 import { useAuth } from '../../context/AuthContext';
 import SocialIcons from './SocialIcons';
+import { getOffices } from '../../lib/constants';
 
 export const NAV = [
   { to: '/', label: 'Home', end: true },
@@ -28,6 +29,7 @@ export const NAV = [
 
 export default function Header() {
   const s = useSettings();
+  const offices = getOffices(s.contact);
   const consult = useConsult();
   const { isClient } = useAuth();
   const [open, setOpen] = useState(false);
@@ -46,15 +48,38 @@ export default function Header() {
   return (
     <>
       {/* Top info bar */}
-      <div className="hidden bg-navy-950 text-[12px] text-white/85 md:block">
-        <div className="container-x flex h-9 items-center justify-between">
-          <div className="flex items-center gap-6">
-            {s.contact?.email && <a href={`mailto:${s.contact.email}`} className="flex items-center gap-1.5 hover:text-white"><Mail className="h-3.5 w-3.5" />{s.contact.email}</a>}
-            {s.contact?.phone && <a href={`tel:${s.contact.phone.replace(/\s/g, '')}`} className="flex items-center gap-1.5 hover:text-white"><Phone className="h-3.5 w-3.5" />{s.contact.phone}</a>}
-            {s.contact?.address && <span className="hidden items-center gap-1.5 lg:flex"><MapPin className="h-3.5 w-3.5" />{s.contact.address}</span>}
-            {s.contact?.officeHours && <span className="hidden items-center gap-1.5 xl:flex"><Clock className="h-3.5 w-3.5" />{s.contact.officeHours}</span>}
+      <div className="relative z-[60] hidden bg-navy-950 text-[12.5px] text-white/85 md:block">
+        <div className="container-x flex h-10 items-center justify-between gap-6">
+          <div className="flex items-center divide-x divide-white/15">
+            {s.contact?.phone && <a href={`tel:${s.contact.phone.replace(/\s/g, '')}`} className="flex items-center gap-2 pr-5 font-medium transition hover:text-white"><Phone className="h-3.5 w-3.5 text-gold-500" />{s.contact.phone}</a>}
+            {s.contact?.email && <a href={`mailto:${s.contact.email}`} className="flex items-center gap-2 px-5 transition hover:text-white"><Mail className="h-3.5 w-3.5 text-gold-500" />{s.contact.email}</a>}
+            {s.contact?.officeHours && <span className="hidden items-center gap-2 pl-5 xl:flex"><Clock className="h-3.5 w-3.5 text-gold-500" />{s.contact.officeHours}</span>}
           </div>
-          <div className="flex items-center gap-3"><span className="text-white/60">Follow us:</span><SocialIcons social={s.social} className="h-3.5 w-3.5" /></div>
+          <div className="flex items-center gap-5">
+            {offices.length > 0 && (
+              <div className="group relative">
+                <Link to="/contact" className="flex items-center gap-2 transition hover:text-white" aria-haspopup="true">
+                  <MapPin className="h-3.5 w-3.5 text-gold-500" />{offices.length > 1 ? `Our Offices (${offices.length})` : (offices[0].name || 'Our Office')}
+                  {offices.length > 1 && <ChevronDown className="h-3 w-3 transition group-hover:rotate-180" />}
+                </Link>
+                <div className="invisible absolute right-0 top-full z-[70] pt-2 opacity-0 transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
+                  <ul className="w-80 divide-y divide-slate-100 rounded-2xl border border-slate-100 bg-white py-1 text-slate-700 shadow-lift">
+                    {offices.map((o, i) => (
+                      <li key={i}>
+                        <Link to="/contact" className="block px-4 py-3 hover:bg-navy-50">
+                          <span className="block text-sm font-semibold text-navy-900">{o.name || `Office ${i + 1}`}</span>
+                          {o.address && <span className="mt-0.5 block text-xs leading-snug text-slate-500">{o.address}</span>}
+                          {o.phone && <span className="mt-0.5 block text-xs text-slate-500">{o.phone}</span>}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+            <span className="h-4 w-px bg-white/15" aria-hidden="true" />
+            <SocialIcons social={s.social} className="h-3.5 w-3.5" />
+          </div>
         </div>
       </div>
 
