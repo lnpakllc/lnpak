@@ -6,6 +6,7 @@ import { useToast } from '../../context/ToastContext';
 import { PageLoader, Spinner } from '../../components/ui';
 import { FormField } from '../../components/admin/FormFields';
 import { PageHeader } from './AdminLayout';
+import { CURRENCIES, CURRENCY_SYMBOLS, CURRENCY_NAMES, CURRENCY_FORMATS } from '../../lib/constants';
 
 const SECTIONS = {
   contact: { label: 'Contact', fields: [
@@ -26,10 +27,39 @@ const SECTIONS = {
   pages: { label: 'Policy pages', fields: [
     { name: 'privacy', label: 'Privacy Policy', type: 'textarea', rows: 8 }, { name: 'terms', label: 'Terms & Conditions', type: 'textarea', rows: 8 }, { name: 'refund', label: 'Refund Policy', type: 'textarea', rows: 8 },
   ] },
+  currency: { label: 'Currency', fields: [] },
   seo: { label: 'SEO defaults', fields: [
     { name: 'metaTitle', label: 'Default meta title', type: 'text', max: 70 }, { name: 'metaDescription', label: 'Default meta description', type: 'textarea', rows: 2, max: 170 }, { name: 'ogImage', label: 'Default social share image', type: 'image' },
   ] },
 };
+
+// Which currencies visitors can switch between, the default, and how prices are written (symbol, text or both).
+function CurrencyEditor({ value, onChange }) {
+  const enabled = value?.enabled?.length ? value.enabled : CURRENCIES;
+  const def = enabled.includes(value?.default) ? value.default : enabled[0];
+  const format = value?.format || 'both';
+  const set = (patch) => onChange({ enabled, default: def, format, ...patch });
+  const toggle = (c) => {
+    const next = enabled.includes(c) ? enabled.filter((x) => x !== c) : CURRENCIES.filter((x) => x === c || enabled.includes(x));
+    if (!next.length) return; // at least one currency stays on
+    set({ enabled: next, default: next.includes(def) ? def : next[0] });
+  };
+  return (
+    <div className="space-y-5 sm:col-span-2">
+      <div>
+        <p className="label">Currencies visitors can choose from</p>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {CURRENCIES.map((c) => <label key={c} className="flex items-center gap-2 text-sm"><input type="checkbox" className="h-4 w-4 accent-navy-900" checked={enabled.includes(c)} onChange={() => toggle(c)} /><span className="font-semibold">{c}</span> {CURRENCY_SYMBOLS[c]} <span className="text-slate-500">{CURRENCY_NAMES[c]}</span></label>)}
+        </div>
+        <p className="mt-2 text-xs text-slate-500">With only one currency ticked, the currency switcher is hidden and prices show in the currency they were entered in. Prices are converted with daily exchange rates.</p>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="block"><span className="label">Default currency</span><select className="input" value={def} onChange={(e) => set({ default: e.target.value })}>{enabled.map((c) => <option key={c} value={c}>{c} — {CURRENCY_NAMES[c]}</option>)}</select></label>
+        <label className="block"><span className="label">How prices are written</span><select className="input" value={format} onChange={(e) => set({ format: e.target.value })}>{CURRENCY_FORMATS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></label>
+      </div>
+    </div>
+  );
+}
 
 // Add / edit / remove office locations. The first one is the head office.
 function OfficesEditor({ value, onChange }) {
@@ -75,6 +105,7 @@ export default function SettingsPage() {
     try {
       const body = Object.fromEntries(Object.keys(SECTIONS).map((k) => [k, values[k] || {}]));
       body.footerAbout = values.footerAbout;
+      if (!values.currency?.enabled?.length) delete body.currency; // never send an empty currency section
       const offices = (body.contact.offices || []).map((o) => ({ name: (o.name || '').trim(), address: (o.address || '').trim(), phone: (o.phone || '').trim(), mapUrl: (o.mapUrl || '').trim() })).filter((o) => o.name || o.address);
       body.contact = { ...body.contact, offices, address: offices[0]?.address || '', mapUrl: offices[0]?.mapUrl || '' }; // first office mirrors the old single-address fields
       if (Array.isArray(body.about?.values)) body.about = { ...body.about, values: body.about.values.map((v) => v.trim()).filter(Boolean) };
@@ -91,6 +122,7 @@ export default function SettingsPage() {
       </div>
       <div className="card grid gap-4 p-6 sm:grid-cols-2">
         {sec.fields.map((f) => <FormField key={f.name} field={f} value={values[tab]?.[f.name]} onChange={(v) => setValues((s) => ({ ...s, [tab]: { ...(s[tab] || {}), [f.name]: v } }))} />)}
+        {tab === 'currency' && <CurrencyEditor value={values.currency} onChange={(v) => setValues((st) => ({ ...st, currency: v }))} />}
         {tab === 'contact' && <OfficesEditor value={values.contact?.offices ?? (values.contact?.address ? [{ name: 'Head Office', address: values.contact.address, mapUrl: values.contact.mapUrl || '' }] : [])} onChange={(v) => setValues((s) => ({ ...s, contact: { ...(s.contact || {}), offices: v } }))} />}
         {tab === 'contact' && <FormField field={{ name: 'footerAbout', label: 'Footer introduction', type: 'textarea', rows: 2 }} value={values.footerAbout} onChange={(v) => setValues((s) => ({ ...s, footerAbout: v }))} />}
       </div>

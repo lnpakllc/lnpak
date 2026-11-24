@@ -1,5 +1,6 @@
 // Supporting models: notifications, audit log, newsletter, site settings.
 import mongoose from 'mongoose';
+import { CURRENCIES, CURRENCY_FORMATS } from '../config/options.js';
 
 const { Schema } = mongoose;
 
@@ -71,6 +72,12 @@ export const Setting = mongoose.model(
         image: String,
       },
       about: { title: String, body: String, mission: String, vision: String, values: [String] },
+      // Currency options for prices: which currencies visitors can pick, the default, and how amounts are written.
+      currency: {
+        enabled: { type: [{ type: String, enum: CURRENCIES }], default: CURRENCIES },
+        default: { type: String, enum: CURRENCIES, default: 'USD' },
+        format: { type: String, enum: CURRENCY_FORMATS, default: 'both' }, // symbol ($1,200), text (USD 1,200) or both ($1,200 USD)
+      },
       footerAbout: String,
       pages: {
         privacy: String,

@@ -1,6 +1,7 @@
 // Website content models managed from the admin panel (CMS).
 import mongoose from 'mongoose';
 import { slugify } from '../utils/http.js';
+import { ALL_CURRENCY_CODES, FEE_MODES, SCHOLARSHIP_TYPES, FUNDING_SOURCES, TEACHING_LANGUAGES, TRANSPORT_TYPES, FAQ_PAGES } from '../config/options.js';
 
 const { Schema } = mongoose;
 
@@ -79,6 +80,25 @@ export const Country = mongoose.model(
   ),
 );
 
+// A package can list any number of hotels (or none). People per room is a single value (peopleMin only) or a range.
+const tourHotel = new Schema(
+  {
+    name: { type: String, required: true, trim: true, maxlength: 160 },
+    city: { type: String, trim: true, maxlength: 100 },
+    stars: { type: Number, min: 1, max: 5 },
+    peopleMin: { type: Number, required: [true, 'People per room is required for each hotel'], min: 1, max: 20, validate: { validator: Number.isInteger, message: 'People per room must be a whole number' } },
+    peopleMax: {
+      type: Number, min: 1, max: 20,
+      validate: [
+        { validator: (v) => v == null || Number.isInteger(v), message: 'People per room must be a whole number' },
+        { validator(v) { return v == null || this.peopleMin == null || v >= this.peopleMin; }, message: 'The highest people-per-room value cannot be lower than the lowest' },
+      ],
+    },
+    notes: { type: String, trim: true, maxlength: 255 },
+  },
+  { _id: false },
+);
+
 export const TourPackage = mongoose.model(
   'TourPackage',
   withCommon({
@@ -90,10 +110,12 @@ export const TourPackage = mongoose.model(
     durationNights: Number,
     departureDates: [Date],
     price: Number,
-    currency: { type: String, default: 'USD' },
+    currency: { type: String, enum: ALL_CURRENCY_CODES, default: 'USD' },
     priceNote: String, // e.g. "per person, twin sharing"
-    hotel: String,
-    transport: String,
+    hotel: String, // older single-hotel text; new packages use `hotels`
+    hotels: { type: [tourHotel], default: [] }, // none, one or many
+    transport: String, // older free text; new packages use `transports`
+    transports: [{ type: String, enum: TRANSPORT_TYPES }],
     summary: { type: String, maxlength: 400 },
     included: [String],
     excluded: [String],
@@ -125,6 +147,19 @@ const universitySchema = withCommon(
       isMedical: { type: Boolean, default: false, index: true },
       description: String,
       programs: [program],
+      // Tuition fee shown on the university: a single amount, a range, plain text, or nothing.
+      // When feeMode is not set (older records) the fees of the programs below are used instead.
+      feeMode: { type: String, enum: FEE_MODES },
+      tuitionFee: { type: Number, min: 0 },
+      tuitionFeeMax: {
+        type: Number, min: 0,
+        validate: { validator(v) { return v == null || this.tuitionFee == null || v >= this.tuitionFee; }, message: 'The highest fee cannot be lower than the lowest' },
+      },
+      feeCurrency: { type: String, enum: ALL_CURRENCY_CODES, default: 'USD' },
+      feeText: { type: String, maxlength: 255, trim: true },
+      scholarshipType: { type: String, enum: [...SCHOLARSHIP_TYPES, ''] }, // empty = no scholarship option
+      scholarshipSource: { type: String, enum: [...FUNDING_SOURCES, ''] },
+      teachingLanguages: [{ type: String, enum: TEACHING_LANGUAGES }], // English, Russian, Chinese
       tuitionMin: Number, // computed from programs for filtering
       languages: [String],
       admissionOpen: { type: Boolean, default: true },
@@ -138,9 +173,17 @@ const universitySchema = withCommon(
     'name',
   );
 
+universitySchema.pre('validate', function checkFeeMode() {
+  if (this.feeMode === 'single' && this.tuitionFee == null) this.invalidate('tuitionFee', 'Enter the tuition fee amount');
+  if (this.feeMode === 'range' && (this.tuitionFee == null || this.tuitionFeeMax == null)) this.invalidate('tuitionFee', 'Enter both the lowest and the highest fee');
+  if (this.feeMode === 'text' && !this.feeText?.trim()) this.invalidate('feeText', 'Enter the fee text');
+  if (this.scholarshipType && !this.scholarshipSource) this.invalidate('scholarshipSource', 'Choose the scholarship funding source (government or institution)');
+});
+
 universitySchema.pre('save', function computeTuition() {
   const fees = (this.programs || []).map((p) => p.tuitionPerYear).filter((n) => typeof n === 'number');
   this.tuitionMin = fees.length ? Math.min(...fees) : undefined;
+  if (['single', 'range'].includes(this.feeMode) && this.tuitionFee != null) this.tuitionMin = this.tuitionFee;
   this.languages = [...new Set((this.programs || []).map((p) => p.language).filter(Boolean))];
 });
 
@@ -154,9 +197,11 @@ export const Scholarship = mongoose.model(
     provider: String, // university or organisation
     degreeLevels: [String], // bachelor, master, phd ...
     fields: [String],
-    fundingType: { type: String, enum: ['fully_funded', 'partially_funded', 'tuition_waiver'], index: true },
-    scholarshipType: String, // government, university, private
-    fundingDetails: String,
+    fundingType: { type: String, enum: [...SCHOLARSHIP_TYPES, 'tuition_waiver'], index: true }, // fully funded / partially funded / institutional ('tuition_waiver' = older records)
+    fundingSource: { type: String, enum: [...FUNDING_SOURCES, ''], index: true }, // government-based or institution-based
+    languages: [{ type: String, enum: TEACHING_LANGUAGES }], // English, Russian, Chinese
+    scholarshipType: String, // older free-text label (government, university, private)
+    fundingDetails: String, // typed text: line breaks and "- " bullets are kept on the public page
     eligibility: [String],
     documents: [String],
     deadline: { type: Date, index: true },
@@ -186,7 +231,14 @@ export const Faq = mongoose.model(
     title: { type: String, required: true, maxlength: 300 }, // the question
     answer: { type: String, required: true },
     category: { type: String, default: 'General', index: true },
+    pages: [{ type: String, enum: FAQ_PAGES, index: true }], // pages this question is shown on
   }),
+);
+
+// FAQ sections/categories managed by staff; questions pick one of these by name.
+export const FaqCategory = mongoose.model(
+  'FaqCategory',
+  withCommon({ name: { type: String, required: true, trim: true, maxlength: 80 } }, 'name'),
 );
 
 // YouTube videos and reels shown on the website's Videos page. Staff paste a normal YouTube link.

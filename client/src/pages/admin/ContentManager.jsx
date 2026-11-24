@@ -18,7 +18,7 @@ function Editor({ type, cfg, item, onClose }) {
   const save = async (e) => {
     e.preventDefault();
     setErr('');
-    const missing = cfg.fields.find((f) => f.required && !values[f.name]);
+    const missing = cfg.fields.find((f) => f.required && !values[f.name] && (!f.showIf || f.showIf(values)));
     if (missing) return setErr(`${missing.label} is required`);
     setBusy(true);
     try {
@@ -34,7 +34,7 @@ function Editor({ type, cfg, item, onClose }) {
   return (
     <Modal open onClose={onClose} title={item?._id ? `Edit ${cfg.singular.toLowerCase()}` : `New ${cfg.singular.toLowerCase()}`} size="max-w-3xl">
       <form onSubmit={save} className="grid gap-4 sm:grid-cols-2">
-        {cfg.fields.map((f) => <FormField key={f.name} field={f} value={values[f.name]} onChange={(v) => setValues((s) => ({ ...s, [f.name]: v }))} />)}
+        {cfg.fields.filter((f) => !f.showIf || f.showIf(values)).map((f) => <FormField key={f.name} field={f} value={values[f.name]} onChange={(v) => setValues((s) => ({ ...s, [f.name]: v }))} />)}
         {err && <p className="field-error sm:col-span-2" role="alert">{err}</p>}
         <div className="sticky bottom-0 -mx-6 -mb-5 flex justify-end gap-2 border-t border-slate-100 bg-white px-6 py-4 sm:col-span-2">
           <button type="button" className="btn-ghost" onClick={onClose}>Cancel</button>

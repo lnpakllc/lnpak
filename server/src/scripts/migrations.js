@@ -1,7 +1,7 @@
 // One-time content updates for an existing database. Each migration runs exactly once
 // (recorded in the "migrations" collection) the first time the API starts after a deploy.
 import mongoose from 'mongoose';
-import { Service, Country, TourPackage } from '../models/content.js';
+import { Service, Country, TourPackage, Faq, Scholarship } from '../models/content.js';
 import { Setting } from '../models/system.js';
 import {
   CONTACT_EMAIL, OFFICE_HOURS, ABOUT, BUSINESS_SETUP_SERVICE, NEW_COUNTRIES, COUNTRY_ORDER, HOMEPAGE_COUNTRIES, FOOTER_COUNTRIES,
@@ -69,6 +69,16 @@ const MIGRATIONS = [
         site.set('contact.offices', [{ name: 'Head Office', address: site.contact.address, mapUrl: site.contact.mapUrl || undefined }]);
         await site.save();
       }
+    },
+  },
+  {
+    // FAQs can now be placed on specific pages. The homepage used to show the first FAQs, so existing ones stay there.
+    id: '2026-11-23-faq-pages-and-scholarship-source',
+    async up() {
+      await Faq.updateMany({ $or: [{ pages: { $exists: false } }, { pages: { $size: 0 } }] }, { $set: { pages: ['home'] } });
+      // Government scholarships already labelled in the old free-text type get the new funding-source value.
+      await Scholarship.updateMany({ fundingSource: { $in: [null, ''] }, scholarshipType: /government/i }, { $set: { fundingSource: 'government' } });
+      await Scholarship.updateMany({ fundingSource: { $in: [null, ''] }, scholarshipType: /universit|institution/i }, { $set: { fundingSource: 'institution' } });
     },
   },
 ];

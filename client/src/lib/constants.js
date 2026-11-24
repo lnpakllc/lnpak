@@ -11,6 +11,7 @@ export const SERVICES = [
   { value: 'medical_university', label: 'Medical University' },
   { value: 'scholarship', label: 'Scholarship Assistance' },
   { value: 'documentation', label: 'Documentation Services' },
+  { value: 'research_support', label: 'Academic Research & Professional Support' },
   { value: 'general', label: 'General Inquiry' },
 ];
 const LEGACY_SERVICES = { immigration: 'Immigration' }; // older leads
@@ -58,9 +59,34 @@ export const tourCategoryLabel = (v) => TOUR_CATEGORIES.find(([k]) => k === v)?.
 export const FUNDING = [
   { value: 'fully_funded', label: 'Fully Funded' },
   { value: 'partially_funded', label: 'Partially Funded' },
-  { value: 'tuition_waiver', label: 'Tuition Waiver' },
+  { value: 'institutional', label: 'Institutional' },
 ];
-export const fundingLabel = (v) => FUNDING.find((f) => f.value === v)?.label || v;
+// Older scholarships may still use this value; it displays fine but is no longer offered for new ones.
+const LEGACY_FUNDING = { tuition_waiver: 'Tuition Waiver' };
+export const FUNDING_SOURCES = [
+  { value: 'government', label: 'Government-based' },
+  { value: 'institution', label: 'Institution-based' },
+];
+export const fundingSourceLabel = (v) => FUNDING_SOURCES.find((f) => f.value === v)?.label || '';
+export const TEACHING_LANGUAGES = [
+  { value: 'en', label: 'English' }, { value: 'ru', label: 'Russian' }, { value: 'zh', label: 'Chinese' },
+];
+export const languageLabel = (v) => TEACHING_LANGUAGES.find((l) => l.value === v)?.label || v;
+export const TRANSPORT_TYPES = [
+  { value: 'plane', label: 'Plane', icon: 'Plane' }, { value: 'train', label: 'Train', icon: 'TrainFront' },
+  { value: 'car', label: 'Car', icon: 'Car' }, { value: 'bus', label: 'Bus', icon: 'Bus' }, { value: 'boat', label: 'Boat', icon: 'Ship' },
+];
+export const transportLabel = (v) => TRANSPORT_TYPES.find((t) => t.value === v)?.label || v;
+export const FAQ_PAGES = [
+  ['home', 'Home'], ['about', 'About Us'], ['services', 'Services'], ['education-scholarships', 'Education & Scholarships'],
+  ['tours', 'Tour Packages'], ['research-support', 'Academic Research & Professional Support'], ['contact', 'Contact'],
+];
+// Currencies prices can be shown in. SAR and AED remain only for older tour packages.
+export const CURRENCIES = ['USD', 'EUR', 'CNY', 'PKR', 'INR', 'RUB', 'TRY', 'GBP'];
+export const CURRENCY_SYMBOLS = { USD: '$', EUR: '€', CNY: '¥', PKR: '₨', INR: '₹', RUB: '₽', TRY: '₺', GBP: '£', SAR: 'SAR', AED: 'AED' };
+export const CURRENCY_NAMES = { USD: 'US Dollar', EUR: 'Euro', CNY: 'Chinese Yuan', PKR: 'Pakistani Rupee', INR: 'Indian Rupee', RUB: 'Russian Ruble', TRY: 'Turkish Lira', GBP: 'British Pound' };
+export const CURRENCY_FORMATS = [['symbol', 'Symbol only ($1,200)'], ['text', 'Code only (USD 1,200)'], ['both', 'Symbol and code ($1,200 USD)']];
+export const fundingLabel = (v) => FUNDING.find((f) => f.value === v)?.label || LEGACY_FUNDING[v] || v;
 
 export const VISA_TYPES = [
   { value: 'study_visa', label: 'Study Visa' },

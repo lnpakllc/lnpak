@@ -3,10 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import { ChevronDown, ArrowRight } from 'lucide-react';
 import { getData } from '../../lib/api';
 import { paragraphs } from '../../lib/constants';
-import { Seo, SectionHeading, Skeleton, ErrorState, List, Icon, Img, PageLoader } from '../../components/ui';
+import { Seo, Skeleton, ErrorState, List, PageLoader } from '../../components/ui';
 import { ServiceCard } from '../../components/public/Cards';
 import { PageHero } from '../../components/public/PublicLayout';
 import LeadForm from '../../components/LeadForm';
+import FaqSection from '../../components/public/FaqSection';
 import NotFound from './NotFound';
 
 export function ServicesPage() {
@@ -22,6 +23,7 @@ export function ServicesPage() {
           </div>
         )}
       </section>
+      <FaqSection page="services" className="py-16" />
     </>
   );
 }
@@ -80,47 +82,6 @@ export function ServiceDetail() {
         </div>
         <SidebarForm title={`Apply for ${s.title}`} service={s.serviceType} formType={`service_page_${s.slug}`} reference={{ kind: 'service', title: s.title, slug: s.slug }} showService={false} submitLabel="Apply Now" />
       </section>
-    </>
-  );
-}
-
-export function EducationPage() {
-  const items = [
-    ['Compass', 'Study Abroad Consultancy', 'Choose the right country, course and budget with a clear plan.'],
-    ['Building2', 'International University Admissions', 'Application preparation and submission to partner and other universities.'],
-    ['Stethoscope', 'Medical University Search', 'Compare MBBS / MD programmes by country, fees and requirements.'],
-    ['Award', 'Scholarship Assistance', 'Find scholarships you are eligible for and prepare strong applications.'],
-    ['FileText', 'Student Visa Guidance', 'Complete visa file preparation and interview practice.'],
-    ['BookOpen', 'Course Selection & Counseling', 'One-to-one counseling for subject and career choices.'],
-  ];
-  return (
-    <>
-      <Seo title="Education & Study Abroad" description="Study abroad consultancy, university admissions, medical universities and scholarship assistance." />
-      <PageHero eyebrow="Education" title="Study Abroad with Confidence" subtitle="From choosing a course to landing on campus — admissions, scholarships and student visas in one place." image="/images/education-students.jpg">
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Link to="/universities?medical=true" className="btn-gold">Medical University Finder</Link>
-          <Link to="/scholarships" className="btn border border-white/40 text-white hover:bg-white/10">Scholarship Finder</Link>
-        </div>
-      </PageHero>
-      <section className="container-x py-16">
-        <SectionHeading title="How we help students" />
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map(([icon, t, d]) => (
-            <div key={t} className="card p-6"><span className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-navy-50 text-navy-900"><Icon name={icon} className="h-6 w-6" /></span><h3 className="text-base">{t}</h3><p className="mt-1 text-sm text-slate-500">{d}</p></div>
-          ))}
-        </div>
-      </section>
-      <section className="bg-navy-50 py-16">
-        <div className="container-x grid items-center gap-10 lg:grid-cols-2">
-          <Img src="/images/education-students.jpg" alt="Students" className="h-80 w-full rounded-3xl object-cover" />
-          <div className="card p-6">
-            <h2 className="text-xl">Book a free education counseling session</h2>
-            <p className="mb-4 mt-1 text-sm text-slate-500">Tell us your qualification and goals — we will suggest suitable options.</p>
-            <LeadForm service="university_admission" formType="education_page" submitLabel="Book Free Counseling" messagePlaceholder="Your last qualification, marks and the course you want…" />
-          </div>
-        </div>
-      </section>
-      <div className="pb-24" />
     </>
   );
 }

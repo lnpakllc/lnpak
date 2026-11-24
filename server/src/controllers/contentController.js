@@ -1,12 +1,15 @@
 // Generic CMS controller: one implementation serves services, countries, tours, universities,
 // scholarships, testimonials and FAQs. Public routes only ever see published records.
 import mongoose from 'mongoose';
-import { Service, Country, TourPackage, University, Scholarship, Testimonial, Faq, Video } from '../models/content.js';
+import { Service, Country, TourPackage, University, Scholarship, Testimonial, Faq, FaqCategory, Video } from '../models/content.js';
 import { audit } from '../middleware/common.js';
+import { FAQ_PAGES } from '../config/options.js';
 import { ApiError, asyncHandler, ok, created, getPaging, pageMeta, escapeRegex } from '../utils/http.js';
 
 const rx = (v) => new RegExp(escapeRegex(v), 'i');
 const exact = (v) => new RegExp(`^${escapeRegex(v)}$`, 'i');
+// "China,Russia" or ?country=China&country=Russia -> ['China', 'Russia'] (the website filters allow several values)
+const list = (v) => [].concat(v ?? []).flatMap((x) => String(x).split(',')).map((x) => x.trim()).filter(Boolean).slice(0, 30);
 
 export const CONTENT_TYPES = {
   services: {
@@ -42,17 +45,24 @@ export const CONTENT_TYPES = {
     search: ['name', 'city', 'country'],
     filters: (q) => {
       const f = {};
-      if (q.country) f.country = exact(q.country);
+      const countries = list(q.country);
+      if (countries.length) f.country = { $in: countries.map(exact) };
       if (q.medical === 'true') f.isMedical = true;
       if (q.degree) f['programs.degree'] = exact(q.degree);
       if (q.program) f['programs.name'] = rx(q.program);
-      if (q.language) f.languages = exact(q.language);
+      const langs = list(q.language);
+      if (langs.length) f.teachingLanguages = { $in: langs };
+      const sch = list(q.scholarship);
+      if (sch.length) f.scholarshipType = { $in: sch };
+      if (q.scholarship === 'any') f.scholarshipType = { $nin: ['', null] };
+      const src = list(q.scholarshipSource);
+      if (src.length) f.scholarshipSource = { $in: src };
       if (q.admissionOpen === 'true') f.admissionOpen = true;
       if (q.maxFee && !Number.isNaN(Number(q.maxFee))) f.tuitionMin = { $lte: Number(q.maxFee) };
       if (q.requirement) f.admissionRequirements = rx(q.requirement);
       return f;
     },
-    listSelect: 'name slug logo image country city isMedical tuitionMin languages admissionOpen programs.degree programs.name programs.tuitionPerYear programs.currency isFeatured',
+    listSelect: 'name slug logo image country city isMedical tuitionMin languages teachingLanguages admissionOpen programs.degree programs.name programs.tuitionPerYear programs.currency isFeatured feeMode tuitionFee tuitionFeeMax feeCurrency feeText scholarshipType scholarshipSource',
   },
   scholarships: {
     Model: Scholarship,
@@ -60,10 +70,16 @@ export const CONTENT_TYPES = {
     search: ['title', 'provider', 'country', 'fields'],
     filters: (q) => {
       const f = {};
-      if (q.country) f.country = exact(q.country);
+      const countries = list(q.country);
+      if (countries.length) f.country = { $in: countries.map(exact) };
+      const langs = list(q.language);
+      if (langs.length) f.languages = { $in: langs };
+      const src = list(q.fundingSource);
+      if (src.length) f.fundingSource = { $in: src };
       if (q.degreeLevel) f.degreeLevels = exact(q.degreeLevel);
       if (q.field) f.fields = rx(q.field);
-      if (q.fundingType) f.fundingType = String(q.fundingType);
+      const funding = list(q.fundingType);
+      if (funding.length) f.fundingType = { $in: funding };
       if (q.scholarshipType) f.scholarshipType = exact(q.scholarshipType);
       if (q.eligibility) f.eligibility = rx(q.eligibility);
       if (q.deadline === 'upcoming') f.deadline = { $gte: new Date() };
@@ -84,8 +100,12 @@ export const CONTENT_TYPES = {
     Model: Faq,
     sort: { category: 1, sortOrder: 1 },
     search: ['title', 'answer'],
-    filters: (q) => ({ ...(q.category && { category: exact(q.category) }) }),
+    filters: (q) => ({
+      ...(q.category && { category: exact(q.category) }),
+      ...(FAQ_PAGES.includes(q.page) && { pages: q.page }),
+    }),
   },
+  faqCategories: { Model: FaqCategory, sort: { sortOrder: 1, name: 1 }, search: ['name'] },
 };
 
 function typeConfig(req) {
