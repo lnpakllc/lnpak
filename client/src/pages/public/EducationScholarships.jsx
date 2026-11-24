@@ -5,6 +5,7 @@ import { PageHero } from '../../components/public/PublicLayout';
 import FaqSection from '../../components/public/FaqSection';
 import LeadForm from '../../components/LeadForm';
 import { UniversitiesFinder, ScholarshipsFinder } from './FinderPages';
+import { useI18n } from '../../context/I18nContext';
 
 const HELP = [
   ['Compass', 'Study Abroad Consultancy', 'Choose the right country, course and budget with a clear plan.'],
@@ -17,6 +18,7 @@ const HELP = [
 
 // One page for study abroad: universities and scholarships side by side as tabs, each with its own filters.
 export default function EducationScholarshipsPage() {
+  const { t } = useI18n();
   const [params, setParams] = useSearchParams();
   const tab = params.get('tab') === 'scholarships' ? 'scholarships' : 'universities';
   const { tab: _t, ...filters } = Object.fromEntries(params.entries());
@@ -33,17 +35,17 @@ export default function EducationScholarshipsPage() {
 
   return (
     <>
-      <Seo title="Education & Scholarships" description="Search universities and scholarships by country, language, tuition fee and funding type — and apply with LN PAK's help." />
-      <PageHero eyebrow="Education & Scholarships" title={medical ? 'Medical University Finder' : 'Universities & Scholarships'} subtitle="Compare universities by country, language and tuition fee, and find fully funded, partially funded and institutional scholarships — then apply with our help." image="/images/education-students.jpg">
+      <Seo title={t('Education & Scholarships')} description="Search universities and scholarships by country, language, tuition fee and funding type — and apply with LN PAK's help." />
+      <PageHero eyebrow={t('Education & Scholarships')} title={medical ? t('Medical University Finder') : t('Universities & Scholarships')} subtitle={t('Compare universities by country, language and tuition fee, and find fully funded, partially funded and institutional scholarships — then apply with our help.')} image="/images/education-students.jpg">
         <label className="relative mt-8 block max-w-xl"><Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-          <input key={tab} defaultValue={filters.q} onChange={(e) => set('q', e.target.value)} className="input pl-10" placeholder={tab === 'scholarships' ? 'Search scholarship, provider or country…' : 'Search university name or city…'} aria-label="Search" />
+          <input key={tab} defaultValue={filters.q} onChange={(e) => set('q', e.target.value)} className="input pl-10" placeholder={tab === 'scholarships' ? t('Search scholarship, provider or country…') : t('Search university name or city…')} aria-label="Search" />
         </label>
       </PageHero>
 
       <div className="border-b border-slate-100 bg-white">
         <div className="container-x flex gap-2 py-3" role="tablist">
           {[['universities', 'Universities'], ['scholarships', 'Scholarships']].map(([k, l]) => (
-            <button key={k} role="tab" aria-selected={tab === k} onClick={() => switchTab(k)} className={`rounded-full px-5 py-2 text-sm font-semibold transition ${tab === k ? 'bg-navy-900 text-white' : 'bg-navy-50 text-navy-900 hover:bg-navy-100'}`}>{l}</button>
+            <button key={k} role="tab" aria-selected={tab === k} onClick={() => switchTab(k)} className={`rounded-full px-5 py-2 text-sm font-semibold transition ${tab === k ? 'bg-navy-900 text-white' : 'bg-navy-50 text-navy-900 hover:bg-navy-100'}`}>{t(l)}</button>
           ))}
         </div>
       </div>
@@ -51,10 +53,10 @@ export default function EducationScholarshipsPage() {
       {tab === 'universities' ? <UniversitiesFinder f={filters} set={set} clear={clear} /> : <ScholarshipsFinder f={filters} set={set} clear={clear} />}
 
       <section className="container-x py-12">
-        <SectionHeading title="How we help students" />
+        <SectionHeading title={t('How we help students')} />
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {HELP.map(([icon, t, d]) => (
-            <div key={t} className="card p-6"><span className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-navy-50 text-navy-900"><Icon name={icon} className="h-6 w-6" /></span><h3 className="text-lg">{t}</h3><p className="mt-1 text-sm text-slate-500">{d}</p></div>
+          {HELP.map(([icon, title, d]) => (
+            <div key={title} className="card p-6"><span className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-navy-50 text-navy-900"><Icon name={icon} className="h-6 w-6" /></span><h3 className="text-lg">{t(title)}</h3><p className="mt-1 text-sm text-slate-500">{t(d)}</p></div>
           ))}
         </div>
       </section>
@@ -62,9 +64,9 @@ export default function EducationScholarshipsPage() {
         <div className="container-x grid items-center gap-10 lg:grid-cols-2">
           <Img src="/images/education-students.jpg" alt="Students" className="h-80 w-full rounded-3xl object-cover" />
           <div className="card p-6">
-            <h2 className="text-xl">Book a free education counseling session</h2>
-            <p className="mb-4 mt-1 text-sm text-slate-500">Tell us your qualification and goals — we will suggest suitable options.</p>
-            <LeadForm service="university_admission" formType="education_page" submitLabel="Book Free Counseling" messagePlaceholder="Your last qualification, marks and the course you want…" />
+            <h2 className="text-xl">{t('Book a free education counseling session')}</h2>
+            <p className="mb-4 mt-1 text-sm text-slate-500">{t('Tell us your qualification and goals — we will suggest suitable options.')}</p>
+            <LeadForm service="university_admission" formType="education_page" submitLabel={t('Book Free Counseling')} messagePlaceholder={t('Your last qualification, marks and the course you want…')} />
           </div>
         </div>
       </section>

@@ -7,6 +7,8 @@ import { useAuth } from '../../context/AuthContext';
 import SocialIcons from './SocialIcons';
 import { getOffices } from '../../lib/constants';
 import CurrencySwitcher from './CurrencySwitcher';
+import LanguageSwitcher from './LanguageSwitcher';
+import { useI18n } from '../../context/I18nContext';
 
 export const NAV = [
   { to: '/', label: 'Home', end: true },
@@ -29,6 +31,7 @@ export const NAV = [
 
 export default function Header() {
   const s = useSettings();
+  const { t } = useI18n();
   const offices = getOffices(s.contact);
   const consult = useConsult();
   const { isClient } = useAuth();
@@ -59,7 +62,7 @@ export default function Header() {
             {offices.length > 0 && (
               <div className="group relative">
                 <Link to="/contact" className="flex items-center gap-2 transition hover:text-white" aria-haspopup="true">
-                  <MapPin className="h-3.5 w-3.5 text-gold-500" />{offices.length > 1 ? `Our Offices (${offices.length})` : (offices[0].name || 'Our Office')}
+                  <MapPin className="h-3.5 w-3.5 text-gold-500" />{offices.length > 1 ? `${t('Our Offices')} (${offices.length})` : (offices[0].name || t('Our Office'))}
                   {offices.length > 1 && <ChevronDown className="h-3 w-3 transition group-hover:rotate-180" />}
                 </Link>
                 <div className="invisible absolute right-0 top-full z-[70] pt-2 opacity-0 transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
@@ -89,7 +92,7 @@ export default function Header() {
             <img src="/logo.jpg" alt="LN PAK LLC logo" className="h-12 w-auto lg:h-14" width="66" height="56" />
             <span className="leading-tight">
               <span className="block font-serif text-xl font-bold tracking-tight text-navy-900 lg:text-2xl">LN PAK LLC</span>
-              <span className="hidden text-[11px] font-medium text-navy-700 sm:block xl:hidden 2xl:block">Your Global Journey Partner</span>
+              <span className="hidden text-[11px] font-medium text-navy-700 sm:block xl:hidden 2xl:block">{t('Your Global Journey Partner')}</span>
             </span>
           </Link>
 
@@ -98,26 +101,27 @@ export default function Header() {
               item.children ? (
                 <div key={item.label} className="group relative">
                   <NavLink to={item.to} className={linkCls}>
-                    <span className="inline-flex items-center gap-1">{item.label}<ChevronDown className="h-3.5 w-3.5 transition group-hover:rotate-180" /></span>
+                    <span className="inline-flex items-center gap-1">{t(item.label)}<ChevronDown className="h-3.5 w-3.5 transition group-hover:rotate-180" /></span>
                   </NavLink>
                   <div className="invisible absolute left-0 top-full z-50 pt-2 opacity-0 transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
                     <div className="w-60 rounded-2xl border border-slate-100 bg-white p-2 shadow-lift">
                       {item.children.map(([to, label]) => (
-                        <Link key={to + label} to={to} className="block rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-navy-50 hover:text-navy-900">{label}</Link>
+                        <Link key={to + label} to={to} className="block rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-navy-50 hover:text-navy-900">{t(label)}</Link>
                       ))}
                     </div>
                   </div>
                 </div>
               ) : (
-                <NavLink key={item.to} to={item.to} end={item.end} className={linkCls} title={item.title}>{item.label}</NavLink>
+                <NavLink key={item.to} to={item.to} end={item.end} className={linkCls} title={item.title ? t(item.title) : undefined}>{t(item.label)}</NavLink>
               ),
             )}
           </nav>
 
           <div className="flex items-center gap-2">
+            <LanguageSwitcher />
             <CurrencySwitcher />
-            <Link to={isClient ? '/client' : '/client/login'} className="btn-ghost hidden whitespace-nowrap px-3 lg:inline-flex" title={isClient ? 'My Portal' : 'Client Login'}><UserCircle2 className="h-4 w-4" /><span className="xl:hidden 2xl:inline">{isClient ? 'My Portal' : 'Client Login'}</span></Link>
-            <button onClick={() => consult({ formType: 'header_cta' })} className="btn-primary hidden whitespace-nowrap sm:inline-flex">Get Free Consultation <ArrowRight className="h-4 w-4" /></button>
+            <Link to={isClient ? '/client' : '/client/login'} className="btn-ghost hidden whitespace-nowrap px-3 lg:inline-flex" title={isClient ? t('My Portal') : t('Client Login')}><UserCircle2 className="h-4 w-4" /><span className="xl:hidden 2xl:inline">{isClient ? t('My Portal') : t('Client Login')}</span></Link>
+            <button onClick={() => consult({ formType: 'header_cta' })} className="btn-primary hidden whitespace-nowrap sm:inline-flex">{t('Get Free Consultation')} <ArrowRight className="h-4 w-4" /></button>
             <button className="rounded-full p-2 text-navy-900 hover:bg-navy-50 xl:hidden" onClick={() => setOpen((o) => !o)} aria-label="Menu" aria-expanded={open}>
               {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -129,17 +133,17 @@ export default function Header() {
             <nav className="container-x space-y-1 py-4" aria-label="Mobile">
               {NAV.map((item) => (
                 <div key={item.label}>
-                  <NavLink to={item.to} end={item.end} className={({ isActive }) => `block rounded-xl px-3 py-2.5 font-semibold ${isActive ? 'bg-navy-50 text-navy-900' : 'text-slate-700'}`}>{item.title || item.label}</NavLink>
+                  <NavLink to={item.to} end={item.end} className={({ isActive }) => `block rounded-xl px-3 py-2.5 font-semibold ${isActive ? 'bg-navy-50 text-navy-900' : 'text-slate-700'}`}>{t(item.title || item.label)}</NavLink>
                   {item.children && (
                     <div className="ml-3 grid grid-cols-2 gap-1 border-l border-slate-100 pl-3">
-                      {item.children.map(([to, label]) => <Link key={to + label} to={to} className="rounded-lg px-2 py-1.5 text-sm text-slate-600">{label}</Link>)}
+                      {item.children.map(([to, label]) => <Link key={to + label} to={to} className="rounded-lg px-2 py-1.5 text-sm text-slate-600">{t(label)}</Link>)}
                     </div>
                   )}
                 </div>
               ))}
               <div className="grid gap-2 pt-3 sm:grid-cols-2">
-                <button onClick={() => consult({ formType: 'mobile_menu_cta' })} className="btn-primary w-full">Get Free Consultation</button>
-                <Link to={isClient ? '/client' : '/client/login'} className="btn-outline w-full">{isClient ? 'My Portal' : 'Client Login'}</Link>
+                <button onClick={() => consult({ formType: 'mobile_menu_cta' })} className="btn-primary w-full">{t('Get Free Consultation')}</button>
+                <Link to={isClient ? '/client' : '/client/login'} className="btn-outline w-full">{isClient ? t('My Portal') : t('Client Login')}</Link>
               </div>
             </nav>
           </div>
