@@ -9,6 +9,7 @@ import * as clients from '../controllers/clientController.js';
 import { stats } from '../controllers/dashboardController.js';
 import { sitemap } from '../controllers/seoController.js';
 import * as setup from '../controllers/setupController.js';
+import { rates } from '../controllers/currencyController.js';
 
 const r = Router();
 const staff = [authenticate, requireStaff];
@@ -33,6 +34,7 @@ r.post('/auth/reset-password', authLimiter, validate(auth.schemas.reset), auth.r
 
 // ---------- public website ----------
 r.get('/settings/public', admin.publicSettings);
+r.get('/currency/rates', rates);
 r.post('/leads', formLimiter, optionalAuth, validate(leads.schemas.publicCreate), leads.publicCreate);
 r.post('/newsletter', formLimiter, validate(admin.schemas.newsletter), admin.subscribe);
 r.get('/content/:type', content.publicList);
@@ -81,6 +83,7 @@ r.put('/admin/roles/:id', can('roles:manage'), validate(admin.schemas.role), adm
 r.delete('/admin/roles/:id', can('roles:manage'), admin.deleteRole);
 r.put('/admin/settings', can('settings:manage'), admin.updateSettings);
 r.get('/admin/newsletter', can('newsletter:manage'), admin.listSubscribers);
+r.patch('/admin/newsletter/:id', can('newsletter:manage'), admin.setSubscriberStatus);
 r.delete('/admin/newsletter/:id', can('newsletter:manage'), admin.deleteSubscriber);
 r.get('/admin/audit-logs', can('audit:view'), admin.listAudit);
 

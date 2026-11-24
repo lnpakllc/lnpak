@@ -25,6 +25,7 @@ const MENU = [
     ['/admin/content/videos', 'Videos & Reels', Video, 'content:manage'],
     ['/admin/content/testimonials', 'Testimonials', MessageSquareQuote, 'content:manage'],
     ['/admin/content/faqs', 'FAQs', HelpCircle, 'content:manage'],
+    ['/admin/content/faqCategories', 'FAQ Sections', HelpCircle, 'content:manage'],
     ['/admin/newsletter', 'Newsletter', Mail, 'newsletter:manage'],
     ['/admin/settings', 'Site Settings', Settings, 'settings:manage'],
   ] },

@@ -1,14 +1,21 @@
 import { useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Clock, MapPin, Hotel, Bus, CalendarDays, CheckCircle2, XCircle } from 'lucide-react';
+import { Clock, MapPin, Hotel, Bus, CalendarDays, CheckCircle2, XCircle, Plane, TrainFront, Car, Ship, Star, Users } from 'lucide-react';
 import { get, getData } from '../../lib/api';
-import { TOUR_CATEGORIES, tourCategoryLabel, money, fmtDate } from '../../lib/constants';
+import { TOUR_CATEGORIES, tourCategoryLabel, transportLabel, fmtDate } from '../../lib/constants';
+import Price from '../../components/public/Price';
+import FaqSection from '../../components/public/FaqSection';
 import { Seo, Skeleton, ErrorState, EmptyState, Img, PageLoader, Pagination } from '../../components/ui';
 import { TourCard } from '../../components/public/Cards';
 import { PageHero } from '../../components/public/PublicLayout';
 import { SidebarForm } from './ServicesPages';
 import NotFound from './NotFound';
+
+const TRANSPORT_ICONS = { plane: Plane, train: TrainFront, car: Car, bus: Bus, boat: Ship };
+
+// "2" for one value, "1–3" for a range.
+export const peopleLabel = (h) => (h.peopleMax != null && h.peopleMax !== h.peopleMin ? `${h.peopleMin}–${h.peopleMax}` : String(h.peopleMin));
 
 export function ToursPage() {
   const [params, setParams] = useSearchParams();
@@ -56,6 +63,7 @@ export function ToursPage() {
           </>
         ) : <EmptyState title={`No ${category ? tourCategoryLabel(category) : 'packages'}${destination ? ` for ${destination}` : ''} available right now`} text="New departures are added regularly. Send us an inquiry and we will plan a custom package." />}
       </section>
+      <FaqSection page="tours" />
       <div className="pb-24" />
     </>
   );
@@ -72,8 +80,9 @@ export function TourDetail() {
   const facts = [
     [Clock, 'Duration', t.durationDays ? `${t.durationDays} Days${t.durationNights ? ` / ${t.durationNights} Nights` : ''}` : null],
     [MapPin, 'Destination', t.destination],
-    [Hotel, 'Hotel', t.hotel],
-    [Bus, 'Transport', t.transport],
+    // Older packages keep a single free-text hotel/transport; newer ones use the structured lists below.
+    [Hotel, 'Hotel', !t.hotels?.length ? t.hotel : null],
+    [Bus, 'Transport', !t.transports?.length ? t.transport : null],
   ].filter(([, , v]) => v);
 
   return (
@@ -99,7 +108,7 @@ export function TourDetail() {
         <div className="space-y-10">
           <div className="flex flex-wrap items-end justify-between gap-4 rounded-2xl bg-navy-50 p-5">
             <div>
-              {t.price != null ? <p className="text-3xl font-extrabold text-navy-900">{money(t.price, t.currency)}</p> : <p className="text-lg font-bold text-navy-900">Price on request</p>}
+              {t.price != null ? <p className="text-3xl font-extrabold text-navy-900"><Price amount={t.price} currency={t.currency} /></p> : <p className="text-lg font-bold text-navy-900">Price on request</p>}
               <p className="text-xs text-slate-500">{t.price != null ? t.priceNote : 'Send a booking inquiry and our team will share the package price and dates.'}</p>
             </div>
             {t.availability !== 'available' && <span className="rounded-full bg-gold-500 px-3 py-1 text-xs font-bold text-navy-950">{{ limited: 'Limited seats', on_request: 'Available on request' }[t.availability] || 'Sold out'}</span>}
@@ -108,6 +117,27 @@ export function TourDetail() {
           <div className="grid gap-3 sm:grid-cols-2">
             {facts.map(([I, l, v]) => <div key={l} className="flex gap-3 rounded-2xl border border-slate-100 p-4"><I className="h-5 w-5 shrink-0 text-navy-700" /><div><p className="text-xs text-slate-500">{l}</p><p className="font-semibold text-navy-900">{v}</p></div></div>)}
           </div>
+          {t.transports?.length > 0 && (
+            <div>
+              <h2 className="mb-3 text-xl">Transportation</h2>
+              <div className="flex flex-wrap gap-2">{t.transports.map((k) => { const I = TRANSPORT_ICONS[k] || Bus; return <span key={k} className="inline-flex items-center gap-2 rounded-full bg-navy-50 px-4 py-2 text-sm font-semibold text-navy-900"><I className="h-4 w-4" />{transportLabel(k)}</span>; })}</div>
+            </div>
+          )}
+          {t.hotels?.length > 0 && (
+            <div>
+              <h2 className="mb-3 text-xl">{t.hotels.length > 1 ? 'Hotels' : 'Hotel'}</h2>
+              <ul className="grid gap-3 sm:grid-cols-2">
+                {t.hotels.map((h, i) => (
+                  <li key={i} className="rounded-2xl border border-slate-100 p-4">
+                    <p className="flex items-center gap-2 font-semibold text-navy-900"><Hotel className="h-4 w-4 shrink-0 text-navy-700" />{h.name}</p>
+                    {(h.city || h.stars) && <p className="mt-1 flex items-center gap-2 text-sm text-slate-500">{h.city}{h.stars ? <span className="inline-flex items-center gap-0.5 text-gold-600" aria-label={`${h.stars} star hotel`}>{Array.from({ length: h.stars }).map((_, k) => <Star key={k} className="h-3.5 w-3.5 fill-current" />)}</span> : null}</p>}
+                    <p className="mt-1 flex items-center gap-2 text-sm text-slate-600"><Users className="h-4 w-4 shrink-0" />{peopleLabel(h)} {peopleLabel(h) === '1' ? 'person' : 'people'} per room</p>
+                    {h.notes && <p className="mt-1 text-xs text-slate-500">{h.notes}</p>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {upcoming.length > 0 && (
             <div><h2 className="mb-3 text-xl">Departure dates</h2><div className="flex flex-wrap gap-2">{upcoming.map((d) => <span key={d} className="inline-flex items-center gap-1.5 rounded-full bg-navy-50 px-3 py-1.5 text-sm font-semibold text-navy-900"><CalendarDays className="h-4 w-4" />{fmtDate(d)}</span>)}</div></div>
           )}

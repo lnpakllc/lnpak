@@ -6,6 +6,7 @@ import { useConsult } from '../../context/ConsultContext';
 import { useAuth } from '../../context/AuthContext';
 import SocialIcons from './SocialIcons';
 import { getOffices } from '../../lib/constants';
+import CurrencySwitcher from './CurrencySwitcher';
 
 export const NAV = [
   { to: '/', label: 'Home', end: true },
@@ -17,17 +18,13 @@ export const NAV = [
       ['/services/documentation-services', 'Documentation'], ['/services', 'All services →'],
     ],
   },
-  { to: '/destinations', label: 'Visa Destinations' },
   { to: '/tours', label: 'Travel & Tourism' },
-  {
-    label: 'Education', to: '/education',
-    children: [['/education', 'Study Abroad'], ['/universities', 'Universities'], ['/universities?medical=true', 'Medical University Finder'], ['/scholarships', 'Scholarships']],
-  },
+  { to: '/education-scholarships', label: 'Education & Scholarships' },
   {
     label: 'About Us', to: '/about',
-    children: [['/about', 'About LN PAK'], ['/videos', 'Videos & Reels'], ['/contact', 'Contact Us']],
+    children: [['/about', 'About LN PAK'], ['/videos', 'Videos & Reels'], ['/faq', 'FAQs'], ['/contact', 'Contact Us']],
   },
-  { to: '/contact', label: 'Contact Us' },
+  { to: '/academic-research-support', label: 'Research & Support', title: 'Academic Research & Professional Support' },
 ];
 
 export default function Header() {
@@ -112,12 +109,13 @@ export default function Header() {
                   </div>
                 </div>
               ) : (
-                <NavLink key={item.to} to={item.to} end={item.end} className={linkCls}>{item.label}</NavLink>
+                <NavLink key={item.to} to={item.to} end={item.end} className={linkCls} title={item.title}>{item.label}</NavLink>
               ),
             )}
           </nav>
 
           <div className="flex items-center gap-2">
+            <CurrencySwitcher />
             <Link to={isClient ? '/client' : '/client/login'} className="btn-ghost hidden whitespace-nowrap px-3 lg:inline-flex" title={isClient ? 'My Portal' : 'Client Login'}><UserCircle2 className="h-4 w-4" /><span className="xl:hidden 2xl:inline">{isClient ? 'My Portal' : 'Client Login'}</span></Link>
             <button onClick={() => consult({ formType: 'header_cta' })} className="btn-primary hidden whitespace-nowrap sm:inline-flex">Get Free Consultation <ArrowRight className="h-4 w-4" /></button>
             <button className="rounded-full p-2 text-navy-900 hover:bg-navy-50 xl:hidden" onClick={() => setOpen((o) => !o)} aria-label="Menu" aria-expanded={open}>
@@ -131,7 +129,7 @@ export default function Header() {
             <nav className="container-x space-y-1 py-4" aria-label="Mobile">
               {NAV.map((item) => (
                 <div key={item.label}>
-                  <NavLink to={item.to} end={item.end} className={({ isActive }) => `block rounded-xl px-3 py-2.5 font-semibold ${isActive ? 'bg-navy-50 text-navy-900' : 'text-slate-700'}`}>{item.label}</NavLink>
+                  <NavLink to={item.to} end={item.end} className={({ isActive }) => `block rounded-xl px-3 py-2.5 font-semibold ${isActive ? 'bg-navy-50 text-navy-900' : 'text-slate-700'}`}>{item.title || item.label}</NavLink>
                   {item.children && (
                     <div className="ml-3 grid grid-cols-2 gap-1 border-l border-slate-100 pl-3">
                       {item.children.map(([to, label]) => <Link key={to + label} to={to} className="rounded-lg px-2 py-1.5 text-sm text-slate-600">{label}</Link>)}

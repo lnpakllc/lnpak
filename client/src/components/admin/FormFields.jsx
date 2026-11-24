@@ -1,7 +1,9 @@
 // Config-driven form fields for the CMS (text, lists, images, repeaters …).
 import { useRef, useState } from 'react';
 import { Plus, Trash2, Upload, X, ChevronUp, ChevronDown } from 'lucide-react';
-import { api } from '../../lib/api';
+import { useQuery } from '@tanstack/react-query';
+import { api, get } from '../../lib/api';
+import FormattedText from '../FormattedText';
 import { useToast } from '../../context/ToastContext';
 import { Field, Img, Spinner, ICONS, Icon } from '../ui';
 
@@ -74,12 +76,20 @@ function Repeater({ field, value = [], onChange }) {
               <button type="button" onClick={() => onChange(value.filter((_, j) => j !== i))} className="rounded p-1 text-rose-600 hover:bg-white" aria-label="Remove"><Trash2 className="h-4 w-4" /></button>
             </div>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">{field.fields.map((f) => <FormField key={f.name} field={f} value={row[f.name]} onChange={(v) => set(i, f.name, v)} />)}</div>
+          <div className="grid gap-3 sm:grid-cols-2">{field.fields.filter((f) => !f.showIf || f.showIf(row)).map((f) => <FormField key={f.name} field={f} value={row[f.name]} onChange={(v) => set(i, f.name, v)} />)}</div>
         </div>
       ))}
       <button type="button" className="btn-outline btn-sm" onClick={() => onChange([...value, blank()])}><Plus className="h-4 w-4" />Add {field.numbered ? 'day' : 'item'}</button>
     </div>
   );
+}
+
+// A select whose options come from another content type (e.g. FAQ categories managed under FAQ Sections).
+function ContentSelect({ field: f, value, onChange }) {
+  const { data } = useQuery({ queryKey: ['admin-options', f.optionsFrom], queryFn: () => get(`/admin/content/${f.optionsFrom}`, { limit: 100 }), staleTime: 30 * 1000 });
+  const names = (data?.data || []).map((x) => x[f.optionLabel || 'name']);
+  const all = value && !names.includes(value) ? [value, ...names] : names; // keep a value that is no longer in the list
+  return <select className="input" value={value || ''} onChange={(e) => onChange(e.target.value)}><option value="">— Select —</option>{all.map((n) => <option key={n} value={n}>{n}</option>)}</select>;
 }
 
 export function FormField({ field: f, value, onChange }) {
@@ -88,9 +98,23 @@ export function FormField({ field: f, value, onChange }) {
   let input;
   switch (f.type) {
     case 'textarea':
-      input = <textarea className="input" rows={f.rows || 3} maxLength={f.max} value={value || ''} onChange={(e) => onChange(e.target.value)} />; break;
+      input = (
+        <>
+          <textarea className="input" rows={f.rows || 3} maxLength={f.max} value={value || ''} onChange={(e) => onChange(e.target.value)} />
+          {f.preview && (value || '').trim() && <div className="mt-2 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm"><p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">How visitors will see it</p><FormattedText text={value} /></div>}
+        </>
+      ); break;
     case 'number':
       input = <input type="number" className="input" value={value ?? ''} onChange={(e) => onChange(e.target.value === '' ? null : Number(e.target.value))} />; break;
+    case 'contentSelect':
+      input = <ContentSelect field={f} value={value} onChange={onChange} />; break;
+    case 'checkboxes':
+      input = (
+        <div className="flex flex-wrap gap-x-5 gap-y-2">{f.options.map(([v, l]) => {
+          const on = (value || []).includes(v);
+          return <label key={v} className="flex items-center gap-2 text-sm"><input type="checkbox" className="h-4 w-4 accent-navy-900" checked={on} onChange={() => onChange(on ? value.filter((x) => x !== v) : [...(value || []), v])} />{l}</label>;
+        })}</div>
+      ); break;
     case 'select':
       input = <select className="input" value={value || ''} onChange={(e) => onChange(e.target.value)}><option value="">— Select —</option>{f.options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>; break;
     case 'checkbox':
@@ -136,11 +160,16 @@ export function prepare(fields, values) {
   const out = {};
   for (const f of fields) {
     let v = values[f.name];
+    if (f.showIf && !f.showIf(values)) { // hidden fields: clear stale values so old data cannot reappear
+      if (f.type === 'number') out[f.name] = null;
+      else if (f.type === 'text' || f.type === 'textarea' || f.clearable) out[f.name] = '';
+      continue;
+    }
     if (f.type === 'list') v = (v || []).map((s) => s.trim()).filter(Boolean);
     if (f.type === 'repeater') v = (v || []).map((row, i) => ({ ...prepare(f.fields, row), ...(f.numbered ? { [f.numbered]: i + 1 } : {}) }));
     if (f.type === 'group') v = prepare(f.fields, v || {});
     if (f.name === 'slug' && !v) continue;
-    out[f.name] = v === '' && f.type === 'select' ? undefined : v;
+    out[f.name] = v === '' && f.type === 'select' && !f.clearable ? undefined : v;
   }
   return out;
 }
@@ -150,6 +179,6 @@ export function initialValues(fields, item) {
     const v = item?.[f.name];
     if (v !== undefined && v !== null) return [f.name, f.type === 'group' ? initialValues(f.fields, v) : v];
     if (f.type === 'group') return [f.name, initialValues(f.fields, {})];
-    return [f.name, f.default ?? (['list', 'repeater', 'images', 'dates'].includes(f.type) ? [] : f.type === 'checkbox' ? false : '')];
+    return [f.name, f.default ?? (['list', 'repeater', 'images', 'dates', 'checkboxes'].includes(f.type) ? [] : f.type === 'checkbox' ? false : '')];
   }));
 }

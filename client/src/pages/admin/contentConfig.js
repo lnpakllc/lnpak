@@ -1,5 +1,5 @@
 // Field definitions for every CMS section. ContentManager renders tables and forms from this.
-import { TOUR_CATEGORIES, FUNDING, VISA_TYPES, SERVICES, money, fmtDate, fundingLabel, tourCategoryLabel } from '../../lib/constants';
+import { TOUR_CATEGORIES, FUNDING, FUNDING_SOURCES, TEACHING_LANGUAGES, TRANSPORT_TYPES, FAQ_PAGES, CURRENCIES, VISA_TYPES, SERVICES, money, fmtDate, fundingLabel, tourCategoryLabel } from '../../lib/constants';
 
 const seo = { name: 'seo', label: 'SEO', type: 'group', fields: [
   { name: 'metaTitle', label: 'Meta title (max 70)', type: 'text', max: 70 },
@@ -13,6 +13,9 @@ const publish = [
   { name: 'slug', label: 'URL slug', type: 'text', hint: 'Leave empty to generate from the title' },
 ];
 const faqs = { name: 'faqs', label: 'FAQs', type: 'repeater', fields: [{ name: 'question', label: 'Question', type: 'text' }, { name: 'answer', label: 'Answer', type: 'textarea', rows: 2 }] };
+
+const currencyOptions = CURRENCIES.map((c) => [c, c]);
+const feeText = (u) => (u.feeMode === 'text' ? u.feeText : u.feeMode === 'single' && u.tuitionFee != null ? money(u.tuitionFee, u.feeCurrency) : u.feeMode === 'range' && u.tuitionFee != null ? `${money(u.tuitionFee, u.feeCurrency)} – ${money(u.tuitionFeeMax, u.feeCurrency)}` : u.tuitionMin != null ? `From ${money(u.tuitionMin)}` : '—');
 
 export const CONTENT = {
   services: {
@@ -67,12 +70,21 @@ export const CONTENT = {
       { name: 'durationDays', label: 'Days', type: 'number', half: true },
       { name: 'durationNights', label: 'Nights', type: 'number', half: true },
       { name: 'price', label: 'Price (leave empty to show “Price on request”)', type: 'number', half: true },
-      { name: 'currency', label: 'Currency', type: 'select', options: [['USD', 'USD'], ['PKR', 'PKR'], ['SAR', 'SAR'], ['AED', 'AED'], ['GBP', 'GBP'], ['EUR', 'EUR']], default: 'USD', half: true },
+      { name: 'currency', label: 'Currency', type: 'select', options: currencyOptions, default: 'USD', half: true },
       { name: 'priceNote', label: 'Price note', type: 'text', hint: 'e.g. per person, twin sharing' },
       { name: 'departureDates', label: 'Departure dates', type: 'dates' },
       { name: 'availability', label: 'Availability', type: 'select', options: [['available', 'Available'], ['on_request', 'Available on Request'], ['limited', 'Limited seats'], ['sold_out', 'Sold out']], default: 'available' },
-      { name: 'hotel', label: 'Hotel', type: 'text' },
-      { name: 'transport', label: 'Transportation', type: 'text' },
+      { name: 'hotels', label: 'Hotels', type: 'repeater', hint: 'Add as many hotels as the package includes, or none.', fields: [
+        { name: 'name', label: 'Hotel name', type: 'text', half: true },
+        { name: 'city', label: 'City', type: 'text', half: true },
+        { name: 'stars', label: 'Stars', type: 'select', options: [['1', '1 star'], ['2', '2 stars'], ['3', '3 stars'], ['4', '4 stars'], ['5', '5 stars']], half: true },
+        { name: 'peopleMin', label: 'People per room', type: 'number', half: true, hint: 'One value, e.g. 2. For a range (1–3) fill the next box too.' },
+        { name: 'peopleMax', label: 'Up to (optional, for a range)', type: 'number', half: true, hint: 'Leave empty for a single value' },
+        { name: 'notes', label: 'Notes (optional)', type: 'text' },
+      ] },
+      { name: 'hotel', label: 'Hotel (older text field)', type: 'text', hint: 'Only shown when no hotels are added above.' },
+      { name: 'transports', label: 'Transportation', type: 'checkboxes', options: TRANSPORT_TYPES.map((t) => [t.value, t.label]), hint: 'Tick one or more.' },
+      { name: 'transport', label: 'Transportation notes (older text field)', type: 'text', hint: 'Only shown when no transport is ticked above.' },
       { name: 'summary', label: 'Summary', type: 'textarea', rows: 3, max: 400 },
       { name: 'included', label: 'Included services', type: 'list' },
       { name: 'excluded', label: 'Excluded services', type: 'list' },
@@ -82,7 +94,7 @@ export const CONTENT = {
   },
   universities: {
     title: 'Universities', singular: 'University', titleField: 'name', publicPath: '/universities',
-    columns: [['name', 'University'], ['country', 'Country'], ['isMedical', 'Medical', (v) => (v ? 'Yes' : 'No')], ['tuitionMin', 'From / year', (v) => (v != null ? money(v) : '—')]],
+    columns: [['name', 'University'], ['country', 'Country'], ['isMedical', 'Medical', (v) => (v ? 'Yes' : 'No')], ['tuitionFee', 'Tuition fee', (_v, row) => feeText(row)], ['scholarshipType', 'Scholarship', (v) => (v ? fundingLabel(v) : '—')]],
     fields: [
       { name: 'name', label: 'University name', type: 'text', required: true },
       { name: 'logo', label: 'Logo', type: 'image', half: true },
@@ -92,6 +104,14 @@ export const CONTENT = {
       { name: 'isMedical', label: 'Medical university (shows in Medical University Finder)', type: 'checkbox' },
       { name: 'admissionOpen', label: 'Admissions currently open', type: 'checkbox', default: true },
       { name: 'description', label: 'Description', type: 'textarea', rows: 5 },
+      { name: 'feeMode', label: 'Tuition fee display', type: 'select', clearable: true, options: [['single', 'Single amount'], ['range', 'Range (from – to)'], ['text', 'Text only (e.g. “Free for scholars”)'], ['none', 'Fee on request']], hint: 'Leave empty to use the lowest fee from the programs below (older behaviour).' },
+      { name: 'feeCurrency', label: 'Fee currency', type: 'select', options: currencyOptions, default: 'USD', half: true, showIf: (v) => v.feeMode === 'single' || v.feeMode === 'range' },
+      { name: 'tuitionFee', label: 'Tuition fee / year (lowest, for a range)', type: 'number', half: true, showIf: (v) => v.feeMode === 'single' || v.feeMode === 'range' },
+      { name: 'tuitionFeeMax', label: 'Highest tuition fee / year', type: 'number', half: true, showIf: (v) => v.feeMode === 'range' },
+      { name: 'feeText', label: 'Fee text', type: 'text', max: 255, showIf: (v) => ['text', 'single', 'range'].includes(v.feeMode), hint: 'Required for “Text only”. For amounts it is shown as a note, e.g. “Fees may change each intake”.' },
+      { name: 'scholarshipType', label: 'Scholarship option', type: 'select', clearable: true, half: true, options: FUNDING.map((f) => [f.value, f.label]), hint: 'Leave empty when the university offers none' },
+      { name: 'scholarshipSource', label: 'Scholarship funding source', type: 'select', clearable: true, half: true, options: FUNDING_SOURCES.map((f) => [f.value, f.label]), showIf: (v) => !!v.scholarshipType, hint: 'Required when a scholarship option is chosen' },
+      { name: 'teachingLanguages', label: 'Languages of instruction', type: 'checkboxes', options: TEACHING_LANGUAGES.map((l) => [l.value, l.label]), hint: 'Tick all three for “all languages”.' },
       { name: 'programs', label: 'Programs & tuition', type: 'repeater', fields: [
         { name: 'name', label: 'Program', type: 'text', half: true }, { name: 'degree', label: 'Degree (MBBS, MD, BSc…)', type: 'text', half: true },
         { name: 'durationYears', label: 'Duration (years)', type: 'number', half: true }, { name: 'tuitionPerYear', label: 'Tuition / year', type: 'number', half: true },
@@ -109,17 +129,19 @@ export const CONTENT = {
   },
   scholarships: {
     title: 'Scholarships', singular: 'Scholarship', titleField: 'title', publicPath: '/scholarships',
-    columns: [['title', 'Scholarship'], ['country', 'Country'], ['fundingType', 'Funding', fundingLabel], ['deadline', 'Deadline', (v) => (v ? fmtDate(v) : '—')]],
+    columns: [['title', 'Scholarship'], ['country', 'Country'], ['fundingType', 'Type', fundingLabel], ['fundingSource', 'Source', (v) => ({ government: 'Government', institution: 'Institution' }[v] || '—')], ['deadline', 'Deadline', (v) => (v ? fmtDate(v) : '—')]],
     fields: [
       { name: 'title', label: 'Title', type: 'text', required: true },
       { name: 'provider', label: 'University / organisation', type: 'text', half: true },
       { name: 'country', label: 'Country', type: 'text', half: true },
-      { name: 'fundingType', label: 'Funding', type: 'select', options: FUNDING.map((f) => [f.value, f.label]), half: true },
-      { name: 'scholarshipType', label: 'Type (Government, University…)', type: 'text', half: true },
+      { name: 'fundingType', label: 'Scholarship type', type: 'select', options: FUNDING.map((f) => [f.value, f.label]), half: true },
+      { name: 'fundingSource', label: 'Funding source', type: 'select', clearable: true, options: FUNDING_SOURCES.map((f) => [f.value, f.label]), half: true },
+      { name: 'languages', label: 'Languages', type: 'checkboxes', options: TEACHING_LANGUAGES.map((l) => [l.value, l.label]), hint: 'Tick all three for “all languages”.' },
+      { name: 'scholarshipType', label: 'Older type label (optional)', type: 'text', half: true, hint: 'Free text from before; the fields above are used for filters.' },
       { name: 'degreeLevels', label: 'Degree levels', type: 'list', hint: 'One per line: Bachelor, Master, PhD' },
       { name: 'fields', label: 'Fields of study', type: 'list' },
       { name: 'deadline', label: 'Application deadline', type: 'date' },
-      { name: 'fundingDetails', label: 'Funding details', type: 'textarea', rows: 3 },
+      { name: 'fundingDetails', label: 'Funding details', type: 'textarea', rows: 7, preview: true, hint: 'Press Enter for new lines. Start a line with “- ” for a bullet point. A blank line starts a new paragraph. The website keeps this layout.' },
       { name: 'eligibility', label: 'Eligibility requirements', type: 'list' },
       { name: 'documents', label: 'Required documents', type: 'list' },
       { name: 'procedure', label: 'Application procedure', type: 'list' },
@@ -157,13 +179,23 @@ export const CONTENT = {
   },
   faqs: {
     title: 'FAQs', singular: 'FAQ', titleField: 'title',
-    columns: [['title', 'Question'], ['category', 'Category']],
+    columns: [['title', 'Question'], ['category', 'Category'], ['pages', 'Shown on', (v) => ((v || []).map((k) => FAQ_PAGES.find(([x]) => x === k)?.[1] || k).join(', ') || 'FAQ page only')]],
     fields: [
       { name: 'title', label: 'Question', type: 'text', required: true },
       { name: 'answer', label: 'Answer', type: 'textarea', rows: 4, required: true },
-      { name: 'category', label: 'Category', type: 'text', default: 'General' },
+      { name: 'category', label: 'Category', type: 'contentSelect', optionsFrom: 'faqCategories', default: 'General', hint: 'Create categories under FAQ Sections.' },
+      { name: 'pages', label: 'Show on these pages', type: 'checkboxes', options: FAQ_PAGES, hint: 'Every published question also appears on the main FAQ page.' },
       { name: 'isPublished', label: 'Published', type: 'checkbox', default: true },
       { name: 'sortOrder', label: 'Sort order', type: 'number', default: 0 },
+    ],
+  },
+  faqCategories: {
+    title: 'FAQ Sections', singular: 'FAQ section', titleField: 'name',
+    columns: [['name', 'Section (category)']],
+    fields: [
+      { name: 'name', label: 'Section name', type: 'text', required: true, hint: 'e.g. Visas, Scholarships, Payments. Questions pick one of these as their category.' },
+      { name: 'isPublished', label: 'Published', type: 'checkbox', default: true },
+      { name: 'sortOrder', label: 'Sort order', type: 'number', default: 0, hint: 'Lower numbers show first on the website' },
     ],
   },
 };

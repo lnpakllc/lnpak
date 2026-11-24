@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import PublicLayout from './components/public/PublicLayout';
 import Home from './pages/public/Home';
 import NotFound from './pages/public/NotFound';
@@ -7,6 +7,9 @@ import { PageLoader } from './components/ui';
 
 // Public pages (split so the homepage loads fast)
 const ServicesPages = () => import('./pages/public/ServicesPages');
+const EducationScholarshipsPage = lazy(() => import('./pages/public/EducationScholarships'));
+const ResearchSupportPage = lazy(() => import('./pages/public/ResearchSupport'));
+const FaqPage = lazy(() => import('./pages/public/FaqPage'));
 const DestinationPages = () => import('./pages/public/DestinationPages');
 const TourPages = () => import('./pages/public/TourPages');
 const FinderPages = () => import('./pages/public/FinderPages');
@@ -16,14 +19,11 @@ const pick = (loader, name) => lazy(() => loader().then((m) => ({ default: m[nam
 
 const ServicesPage = pick(ServicesPages, 'ServicesPage');
 const ServiceDetail = pick(ServicesPages, 'ServiceDetail');
-const EducationPage = pick(ServicesPages, 'EducationPage');
 const DestinationsPage = pick(DestinationPages, 'DestinationsPage');
 const DestinationDetail = pick(DestinationPages, 'DestinationDetail');
 const ToursPage = pick(TourPages, 'ToursPage');
 const TourDetail = pick(TourPages, 'TourDetail');
-const UniversitiesPage = pick(FinderPages, 'UniversitiesPage');
 const UniversityDetail = pick(FinderPages, 'UniversityDetail');
-const ScholarshipsPage = pick(FinderPages, 'ScholarshipsPage');
 const ScholarshipDetail = pick(FinderPages, 'ScholarshipDetail');
 const VideosPage = pick(VideoPages, 'VideosPage');
 const AboutPage = pick(StaticPages, 'AboutPage');
@@ -33,6 +33,14 @@ const PolicyPage = pick(StaticPages, 'PolicyPage');
 // Admin CRM and client portal are separate bundles, loaded only when visited.
 const AdminApp = lazy(() => import('./pages/admin/AdminApp'));
 const ClientApp = lazy(() => import('./pages/client/ClientApp'));
+
+// Old Education, University Finder and Scholarship Finder links now open the merged page (filters in the URL are kept).
+function ToEducation({ tab }) {
+  const { search } = useLocation();
+  const p = new URLSearchParams(search);
+  if (tab === 'scholarships') p.set('tab', 'scholarships');
+  return <Navigate to={`/education-scholarships${p.toString() ? `?${p}` : ''}`} replace />;
+}
 
 export default function App() {
   return (
@@ -48,10 +56,13 @@ export default function App() {
           <Route path="destinations/:slug" element={<DestinationDetail />} />
           <Route path="tours" element={<ToursPage />} />
           <Route path="tours/:slug" element={<TourDetail />} />
-          <Route path="education" element={<EducationPage />} />
-          <Route path="universities" element={<UniversitiesPage />} />
+          <Route path="education-scholarships" element={<EducationScholarshipsPage />} />
+          <Route path="education" element={<ToEducation />} />
+          <Route path="universities" element={<ToEducation />} />
           <Route path="universities/:slug" element={<UniversityDetail />} />
-          <Route path="scholarships" element={<ScholarshipsPage />} />
+          <Route path="scholarships" element={<ToEducation tab="scholarships" />} />
+          <Route path="academic-research-support" element={<ResearchSupportPage />} />
+          <Route path="faq" element={<FaqPage />} />
           <Route path="scholarships/:slug" element={<ScholarshipDetail />} />
           <Route path="videos" element={<VideosPage />} />
           <Route path="about" element={<AboutPage />} />

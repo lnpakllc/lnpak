@@ -4,6 +4,7 @@ import { paragraphs, whatsappLink, getOffices } from '../../lib/constants';
 import { Seo, Icon } from '../../components/ui';
 import { PageHero } from '../../components/public/PublicLayout';
 import LeadForm from '../../components/LeadForm';
+import FaqSection from '../../components/public/FaqSection';
 
 const VALUE_ICONS = ['ShieldCheck', 'Award', 'Globe2', 'Heart', 'CheckCircle2', 'Handshake'];
 
@@ -40,6 +41,7 @@ export function AboutPage() {
           </div>
         </section>
       )}
+      <FaqSection page="about" className="py-16" />
       <div className="pb-24" />
     </>
   );
@@ -92,6 +94,7 @@ export function ContactPage() {
           <LeadForm formType="contact_page" submitLabel="Send Message" />
         </div>
       </section>
+      <FaqSection page="contact" className="py-16" />
       <div className="pb-24" />
     </>
   );

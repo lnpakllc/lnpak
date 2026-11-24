@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, Clock, MapPin, CalendarDays, GraduationCap, ExternalLink } from 'lucide-react';
 import { Icon, Img, Badge } from '../ui';
-import { money, fmtDate, fundingLabel } from '../../lib/constants';
+import { fmtDate, fundingLabel, fundingSourceLabel, languageLabel } from '../../lib/constants';
+import FeeDisplay from './FeeDisplay';
+import Price from './Price';
 import { useConsult } from '../../context/ConsultContext';
 
 export function ServiceCard({ s, detailed = false }) {
@@ -39,7 +41,7 @@ export function TourCard({ t }) {
         </p>
         <div className="mt-auto pt-4">
           {t.price != null ? (
-            <span className="inline-flex items-center gap-2 rounded-lg bg-navy-900 px-3 py-1.5 text-sm font-bold text-white">From {money(t.price, t.currency)}<ArrowRight className="h-4 w-4" /></span>
+            <span className="inline-flex items-center gap-2 rounded-lg bg-navy-900 px-3 py-1.5 text-sm font-bold text-white">From <Price amount={t.price} currency={t.currency} /><ArrowRight className="h-4 w-4" /></span>
           ) : <span className="inline-flex items-center gap-2 rounded-lg bg-navy-900 px-3 py-1.5 text-sm font-bold text-white">View details<ArrowRight className="h-4 w-4" /></span>}
         </div>
       </div>
@@ -63,7 +65,6 @@ export function CountryCard({ c }) {
 
 export function UniversityCard({ u }) {
   const degrees = [...new Set((u.programs || []).map((p) => p.degree).filter(Boolean))];
-  const fee = (u.programs || []).find((p) => p.tuitionPerYear === u.tuitionMin);
   return (
     <Link to={`/universities/${u.slug}`} className="card flex gap-4 p-5 transition hover:-translate-y-0.5 hover:shadow-lift">
       <Img src={u.logo} alt={`${u.name} logo`} className="h-16 w-16 shrink-0 rounded-xl border border-slate-100 object-contain p-1" fallbackIcon="GraduationCap" />
@@ -73,10 +74,11 @@ export function UniversityCard({ u }) {
         <div className="mt-2 flex flex-wrap gap-1.5">
           {u.isMedical && <Badge className="bg-emerald-50 text-emerald-700">Medical</Badge>}
           {degrees.map((d) => <Badge key={d} className="bg-navy-50 text-navy-800">{d}</Badge>)}
-          {u.languages?.map((l) => <Badge key={l}>{l}</Badge>)}
+          {u.scholarshipType && <Badge className="bg-amber-50 text-amber-700">{fundingLabel(u.scholarshipType)} scholarship{u.scholarshipSource ? ` · ${fundingSourceLabel(u.scholarshipSource)}` : ''}</Badge>}
+          {u.teachingLanguages?.map((l) => <Badge key={l}>{languageLabel(l)}</Badge>)}
           {u.admissionOpen ? <Badge className="bg-sky-50 text-sky-700">Admissions open</Badge> : <Badge>Admissions closed</Badge>}
         </div>
-        {u.tuitionMin != null && <p className="mt-2 text-sm text-slate-600">Tuition from <strong className="text-navy-900">{money(u.tuitionMin, fee?.currency)}</strong> / year</p>}
+        <p className="mt-2 text-sm text-slate-600">Tuition: <FeeDisplay u={u} /></p>
       </div>
     </Link>
   );
@@ -88,7 +90,8 @@ export function ScholarshipCard({ s }) {
     <div className="card flex flex-col p-5 transition hover:shadow-lift">
       <div className="mb-2 flex flex-wrap gap-1.5">
         {s.fundingType && <Badge className={s.fundingType === 'fully_funded' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}>{fundingLabel(s.fundingType)}</Badge>}
-        {s.scholarshipType && <Badge>{s.scholarshipType}</Badge>}
+        {s.fundingSource ? <Badge>{fundingSourceLabel(s.fundingSource)}</Badge> : s.scholarshipType ? <Badge>{s.scholarshipType}</Badge> : null}
+        {s.languages?.map((l) => <Badge key={l}>{languageLabel(l)}</Badge>)}
       </div>
       <Link to={`/scholarships/${s.slug}`} className="hover:underline"><h3 className="text-base leading-snug">{s.title}</h3></Link>
       <p className="mt-1 text-sm text-slate-500">{[s.provider, s.country].filter(Boolean).join(' · ')}</p>

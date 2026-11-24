@@ -6,6 +6,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { ConsultProvider } from './context/ConsultContext';
+import { CurrencyProvider } from './context/CurrencyContext';
 import { captureUtm } from './lib/utm';
 import App from './App';
 import './index.css';
@@ -25,9 +26,11 @@ createRoot(document.getElementById('root')).render(
         <BrowserRouter>
           <ToastProvider>
             <AuthProvider>
-              <ConsultProvider>
-                <App />
-              </ConsultProvider>
+              <CurrencyProvider>
+                <ConsultProvider>
+                  <App />
+                </ConsultProvider>
+              </CurrencyProvider>
             </AuthProvider>
           </ToastProvider>
         </BrowserRouter>

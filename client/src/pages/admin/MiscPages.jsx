@@ -15,20 +15,28 @@ export function NewsletterPage() {
   const qc = useQueryClient();
   const [page, setPage] = useState(1);
   const [q, setQ] = useState('');
+  const [status, setStatus] = useState('');
   const [del, setDel] = useState(null);
-  const { data, isLoading, error, refetch } = useQuery({ queryKey: ['newsletter', page, q], queryFn: () => get('/admin/newsletter', { page, q, limit: 25 }), placeholderData: keepPreviousData });
+  const { data, isLoading, error, refetch } = useQuery({ queryKey: ['newsletter', page, q, status], queryFn: () => get('/admin/newsletter', { page, q, status, limit: 25 }), placeholderData: keepPreviousData });
   const remove = useMutation({ mutationFn: (s) => api.delete(`/admin/newsletter/${s._id}`), onSuccess: () => { toast('Subscriber removed'); setDel(null); qc.invalidateQueries({ queryKey: ['newsletter'] }); } });
+  const setActive = useMutation({ mutationFn: (s) => api.patch(`/admin/newsletter/${s._id}`, { isActive: !s.isActive }), onSuccess: () => qc.invalidateQueries({ queryKey: ['newsletter'] }), onError: (e) => toast(e.message, 'error') });
   return (
     <>
-      <PageHeader title="Newsletter subscribers" subtitle={data ? `${data.meta.total} subscribers` : ''} actions={<button className="btn-outline btn-sm" onClick={() => download('/admin/newsletter', { format: 'csv' }, 'lnpak-subscribers.csv').catch((e) => toast(e.message, 'error'))}><Download className="h-4 w-4" />Export CSV</button>} />
-      <label className="relative mb-4 block max-w-sm"><Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" /><input className="input pl-9" placeholder="Search email" onKeyDown={(e) => { if (e.key === 'Enter') { setQ(e.target.value); setPage(1); } }} /></label>
+      <PageHeader title="Newsletter subscribers" subtitle={data ? `${data.meta.total} shown · ${data.meta.active} subscribed` : ''} actions={<button className="btn-outline btn-sm" onClick={() => download('/admin/newsletter', { format: 'csv' }, 'lnpak-subscribers.csv').catch((e) => toast(e.message, 'error'))}><Download className="h-4 w-4" />Export CSV</button>} />
+      <div className="mb-4 flex flex-wrap gap-3">
+        <label className="relative block w-full max-w-sm"><Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" /><input className="input pl-9" placeholder="Search email" onKeyDown={(e) => { if (e.key === 'Enter') { setQ(e.target.value); setPage(1); } }} /></label>
+        <select className="input w-48" value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} aria-label="Status"><option value="">All subscribers</option><option value="active">Subscribed</option><option value="unsubscribed">Unsubscribed</option></select>
+      </div>
       {error ? <ErrorState error={error} onRetry={refetch} /> : isLoading ? <Skeleton className="h-72" /> : data.data.length === 0 ? <EmptyState title="No subscribers yet" /> : (
         <>
           <div className="card divide-y divide-slate-100">
             {data.data.map((s) => (
               <div key={s._id} className="flex items-center justify-between px-4 py-3 text-sm">
-                <div><p className="font-medium text-navy-900">{s.email}</p><p className="text-xs text-slate-400">{fmtDate(s.createdAt)}{s.sourcePage ? ` · from ${s.sourcePage}` : ''}</p></div>
-                <button className="rounded-lg p-2 text-rose-600 hover:bg-rose-50" onClick={() => setDel(s)} aria-label={`Remove ${s.email}`}><Trash2 className="h-4 w-4" /></button>
+                <div><p className="font-medium text-navy-900">{s.email}{!s.isActive && <span className="ml-2 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-slate-500">Unsubscribed</span>}</p><p className="text-xs text-slate-400">{fmtDate(s.createdAt)}{s.sourcePage ? ` · from ${s.sourcePage}` : ''}</p></div>
+                <div className="flex items-center gap-2">
+                  <button className="rounded-lg px-3 py-1.5 text-xs font-semibold text-navy-800 hover:bg-navy-50" onClick={() => setActive.mutate(s)}>{s.isActive ? 'Unsubscribe' : 'Resubscribe'}</button>
+                  <button className="rounded-lg p-2 text-rose-600 hover:bg-rose-50" onClick={() => setDel(s)} aria-label={`Remove ${s.email}`}><Trash2 className="h-4 w-4" /></button>
+                </div>
               </div>
             ))}
           </div>

@@ -5,6 +5,7 @@ import { User } from '../models/User.js';
 import { Role } from '../models/Role.js';
 import { Notification, Setting, NewsletterSubscriber, AuditLog } from '../models/system.js';
 import { PERMISSIONS } from '../config/permissions.js';
+import { CURRENCIES, CURRENCY_FORMATS } from '../config/options.js';
 import { invalidateRoleCache } from '../middleware/auth.js';
 import { audit } from '../middleware/common.js';
 import { savePublicImage, storageStatus } from '../services/storage.js';
@@ -163,7 +164,15 @@ export const publicSettings = asyncHandler(async (_req, res) => {
 
 export const updateSettings = asyncHandler(async (req, res) => {
   const doc = await getSettingsDoc();
-  const allowed = ['contact', 'social', 'hero', 'about', 'footerAbout', 'pages', 'seo'];
+  const allowed = ['contact', 'social', 'hero', 'about', 'footerAbout', 'pages', 'seo', 'currency'];
+  if ('currency' in req.body) {
+    const c = req.body.currency || {};
+    const enabled = (Array.isArray(c.enabled) ? c.enabled : []).filter((x) => CURRENCIES.includes(x));
+    if (!enabled.length) throw ApiError.badRequest('Choose at least one currency');
+    if (!enabled.includes(c.default)) throw ApiError.badRequest('The default currency must be one of the enabled currencies');
+    if (!CURRENCY_FORMATS.includes(c.format)) throw ApiError.badRequest('Choose how prices are written (symbol, text or both)');
+    req.body.currency = { enabled, default: c.default, format: c.format };
+  }
   for (const k of allowed) if (k in req.body) doc.set(k, req.body[k]);
   await doc.save();
   await audit(req, 'settings.update', 'Setting', doc._id, { sections: Object.keys(req.body).filter((k) => allowed.includes(k)) });
@@ -184,14 +193,29 @@ export const listSubscribers = asyncHandler(async (req, res) => {
   const paging = getPaging(req.query);
   const f = {};
   if (req.query.q) f.email = new RegExp(escapeRegex(req.query.q), 'i');
+  if (req.query.status === 'active') f.isActive = true;
+  if (req.query.status === 'unsubscribed') f.isActive = false;
   if (req.query.format === 'csv') {
     const all = await NewsletterSubscriber.find({ ...f, isActive: true }).sort({ createdAt: -1 }).lean();
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', 'attachment; filename="lnpak-subscribers.csv"');
-    return res.send(['email,subscribed_at', ...all.map((s) => `"${s.email}",${s.createdAt.toISOString()}`)].join('\r\n'));
+    return res.send(['email,subscribed_at', ...all.map((s) => `"${/^[=+\-@\t\r]/.test(s.email) ? "'" : ''}${s.email.replace(/"/g, '""')}",${s.createdAt.toISOString()}`)].join('\r\n'));
   }
-  const [items, total] = await Promise.all([NewsletterSubscriber.find(f).sort({ createdAt: -1 }).skip(paging.skip).limit(paging.limit), NewsletterSubscriber.countDocuments(f)]);
-  ok(res, items, pageMeta(total, paging));
+  const [items, total, active] = await Promise.all([
+    NewsletterSubscriber.find(f).sort({ createdAt: -1 }).skip(paging.skip).limit(paging.limit),
+    NewsletterSubscriber.countDocuments(f),
+    NewsletterSubscriber.countDocuments({ isActive: true }),
+  ]);
+  ok(res, items, { ...pageMeta(total, paging), active });
+});
+
+export const setSubscriberStatus = asyncHandler(async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) throw ApiError.notFound();
+  const isActive = req.body?.isActive === true;
+  const sub = await NewsletterSubscriber.findByIdAndUpdate(req.params.id, { isActive }, { new: true });
+  if (!sub) throw ApiError.notFound();
+  await audit(req, isActive ? 'newsletter.resubscribe' : 'newsletter.unsubscribe', 'NewsletterSubscriber', sub._id);
+  ok(res, sub);
 });
 
 export const deleteSubscriber = asyncHandler(async (req, res) => {

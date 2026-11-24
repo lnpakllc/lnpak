@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, CheckCircle2, Star, Plane, ChevronDown } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Star, Plane } from 'lucide-react';
 import { getData } from '../../lib/api';
 import { useSettings } from '../../hooks/useSettings';
 import { useConsult } from '../../context/ConsultContext';
 import { Seo, SectionHeading, Icon, Img, Skeleton } from '../../components/ui';
 import { ServiceCard, TourCard, CountryCard } from '../../components/public/Cards';
 import LeadForm from '../../components/LeadForm';
+import FaqSection from '../../components/public/FaqSection';
 import { VideoCard, VideoModal, useVideoPlayer } from '../../components/public/VideoPlayer';
 
 const useContent = (type, params) =>
@@ -39,7 +40,6 @@ export default function Home() {
   const tours = useContent('tours', { featured: 'true', limit: 4 });
   const countries = useContent('countries', { featured: 'true', limit: 8 });
   const testimonials = useContent('testimonials', { limit: 3 });
-  const faqs = useContent('faqs', { limit: 6 });
   const videos = useContent('videos', { featured: 'true', limit: 3 });
   const player = useVideoPlayer();
   const hero = s.hero || {};
@@ -134,15 +134,15 @@ export default function Home() {
               <ul className="space-y-4">
                 {EDU_POINTS.map((p) => <li key={p} className="flex items-center gap-3 font-medium text-navy-900"><CheckCircle2 className="h-5 w-5 shrink-0 text-navy-700" />{p}</li>)}
               </ul>
-              <Link to="/education" className="btn-outline mt-6 self-start">Explore Education <ArrowRight className="h-4 w-4" /></Link>
+              <Link to="/education-scholarships" className="btn-outline mt-6 self-start">Explore Education <ArrowRight className="h-4 w-4" /></Link>
             </div>
             <div className="flex flex-col justify-center rounded-3xl bg-navy-100/70 p-8 text-center">
               <Icon name="GraduationCap" className="mx-auto mb-3 h-12 w-12 text-navy-900" />
               <h3 className="text-xl">Study Medicine Abroad</h3>
               <p className="mt-2 text-sm text-slate-600">Compare medical universities by country, fees, language and entry requirements.</p>
               <div className="mt-5 flex flex-wrap justify-center gap-2">
-                <Link to="/universities?medical=true" className="btn-primary">Medical University Finder</Link>
-                <Link to="/scholarships" className="btn-outline">Scholarships</Link>
+                <Link to="/education-scholarships?medical=true" className="btn-primary">Medical University Finder</Link>
+                <Link to="/education-scholarships?tab=scholarships" className="btn-outline">Scholarships</Link>
               </div>
             </div>
           </div>
@@ -218,24 +218,7 @@ export default function Home() {
       )}
 
       {/* ---------- FAQ ---------- */}
-      {(faqs.data || []).length > 0 && (
-        <section className="py-20">
-          <div className="container-x max-w-3xl">
-            <SectionHeading title="Frequently Asked Questions" />
-            <div className="space-y-3">
-              {faqs.data.map((f) => (
-                <details key={f._id} className="group card px-5 py-4 open:shadow-lift">
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-navy-900">
-                    {f.title}<ChevronDown className="h-5 w-5 shrink-0 transition group-open:rotate-180" />
-                  </summary>
-                  <p className="mt-3 text-sm leading-relaxed text-slate-600">{f.answer}</p>
-                </details>
-              ))}
-            </div>
-            <p className="mt-6 text-center text-sm text-slate-500">More questions? <Link className="font-semibold text-navy-700 underline" to="/contact">Contact our team</Link></p>
-          </div>
-        </section>
-      )}
+      <FaqSection page="home" className="bg-white py-16" />
       <div className="pb-24" />
     </>
   );
