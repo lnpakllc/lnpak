@@ -7,6 +7,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { ConsultProvider } from './context/ConsultContext';
 import { CurrencyProvider } from './context/CurrencyContext';
+import { I18nProvider } from './context/I18nContext';
 import { captureUtm } from './lib/utm';
 import App from './App';
 import './index.css';
@@ -27,9 +28,11 @@ createRoot(document.getElementById('root')).render(
           <ToastProvider>
             <AuthProvider>
               <CurrencyProvider>
-                <ConsultProvider>
-                  <App />
-                </ConsultProvider>
+                <I18nProvider>
+                  <ConsultProvider>
+                    <App />
+                  </ConsultProvider>
+                </I18nProvider>
               </CurrencyProvider>
             </AuthProvider>
           </ToastProvider>
